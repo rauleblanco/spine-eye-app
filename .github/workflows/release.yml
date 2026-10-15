@@ -1,0 +1,91 @@
+name: Release Unsigned Desktop Builds
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release version tag (e.g. v0.1.0)'
+        required: false
+        default: 'v0.1.0'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            target: 'universal-apple-darwin'
+            arch: 'macOS (Universal - Apple Silicon & Intel)'
+          - platform: 'windows-latest'
+            target: 'x86_64-pc-windows-msvc'
+            arch: 'Windows 11 (x64)'
+
+    runs-on: ${{ matrix.platform }}
+
+    env:
+      # Instructs the macOS linker/codesign to produce an ad-hoc self-signature during compilation
+      APPLE_SIGNING_IDENTITY: '-'
+      CI: true
+      VITE_BUILD_NUMBER: ${{ github.run_number }}
+      VITE_COMMIT_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js runtime
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24.21.0'
+          cache: 'npm'
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || 'x86_64-pc-windows-msvc' }}
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Build Tauri Desktop Application (Unsigned / Ad-hoc Signed)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: '-'
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.0-build-{0}', github.run_number) }}
+          releaseName: 'Spine & Eye Release ${{ github.ref_name }}'
+          releaseBody: |
+            ## Spine & Eye Clinical Ergonomics Desktop Companion
+            Always-on cross-platform background reminder app built with Tauri v2.
+
+            ### Clinical Foundations:
+            - **Cornell University Ergonomics (CUErgo)**: 20-8-2 work pattern & neutral spine guidelines.
+            - **American Academy of Ophthalmology (AAO)**: 20-20-20 rule & digital eye strain blink protocol.
+
+            ### Platform Packages:
+            - **macOS**: Ad-hoc signed (`APPLE_SIGNING_IDENTITY: "-"`) `.dmg` and `.app.tar.gz`.
+            - **Windows 11**: Standalone NSIS setup (`.exe`) and MSI installer (`.msi`).
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}

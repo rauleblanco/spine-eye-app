@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spine & Eye - Clinical Ergonomics Companion</title>
+  <meta name="description" content="Always-on cross-platform background reminder app rooted in Cornell CUErgo and American Academy of Ophthalmology clinical standards" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/app-icon.png" />
+  <link rel="apple-touch-icon" href="/app-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="dark-theme">
+  <!-- Desktop App Container -->
+  <div id="app" class="app-layout">
+    <!-- Top Navigation & Status Bar -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <img src="/app-icon.png" alt="Spine & Eye Icon" width="34" height="34" style="border-radius: 8px;" />
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <span class="brand-name">Spine & Eye</span>
+            <span class="clinical-badge">Clinical Ergonomics</span>
+          </div>
+          <span class="brand-subtitle">Cornell CUErgo & AAO Standards</span>
+        </div>
+      </div>
+
+      <div class="header-status-group">
+        <div id="tray-live-pill" class="status-pill background-active" title="Application remains active in system taskbar / menu bar">
+          <span class="pulse-dot"></span>
+          <span id="tray-live-label" class="status-label">Taskbar Active • Sit (20m)</span>
+        </div>
+
+        <div class="header-actions">
+          <button id="btn-sound-toggle" class="icon-button" title="Toggle Audio Chimes" aria-label="Toggle Audio">
+            <svg id="icon-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <svg id="icon-sound-off" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+
+          <button id="btn-audit-open" class="header-pill-btn" title="Open Cornell Ergonomics Self-Audit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Ergo Audit</span>
+          </button>
+
+          <button id="btn-about-open" class="icon-button" title="About & Open Source License" aria-label="About and License">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+
+          <button id="btn-settings-toggle" class="icon-button" title="Settings" aria-label="Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+
+          <button id="btn-minimize-tray" class="icon-button tray-minimize-btn" title="Minimize to System Tray" aria-label="Minimize to tray">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 14l6 6 6-6"/>
+              <path d="M12 2v18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Master 1-Click Dual Protocol Action Bar -->
+    <section class="master-action-bar glass-panel">
+      <div class="master-info-col">
+        <div class="master-title-row">
+          <span class="master-indicator-pill">Simultaneous Protocol Engines</span>
+          <span class="master-subtext">Independent background timing running concurrently</span>
+        </div>
+        <div class="master-status-trackers">
+          <div class="tracker-item" id="tracker-eye">
+            <span class="tracker-dot dot-eye"></span>
+            <span class="tracker-title">Eye Rest:</span>
+            <strong id="tracker-eye-digits">20:00</strong>
+            <span id="tracker-eye-step" class="tracker-step-lbl">• Screen Focus</span>
+          </div>
+          <div class="tracker-divider"></div>
+          <div class="tracker-item" id="tracker-posture">
+            <span class="tracker-dot dot-posture"></span>
+            <span class="tracker-title">Posture Cycle:</span>
+            <strong id="tracker-posture-digits">20:00</strong>
+            <span id="tracker-posture-step" class="tracker-step-lbl">• Step 1: Sit (Neutral)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="master-btn-col">
+        <button id="btn-master-toggle" class="btn-master-primary" title="Start both vision and posture protocols simultaneously">
+          <svg id="master-icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <svg id="master-icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+          <span id="master-btn-label">Start Vision + Posture (1-Click)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="app-body">
+      <!-- Simplified Protocol Navigation Tabs (Clean bold titles; details inside tab) -->
+      <section class="protocol-bar" role="tablist">
+        <button id="tab-eye" class="protocol-tab active" data-protocol="eye_rest" role="tab" aria-selected="true">
+          <div class="tab-indicator aao-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Eye Rest</span>
+            <span id="tab-badge-eye" class="tab-mini-badge">20-20-20</span>
+          </div>
+        </button>
+
+        <button id="tab-posture-default" class="protocol-tab" data-protocol="posture_default" role="tab" aria-selected="false">
+          <div class="tab-indicator cornell-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Posture (Default)</span>
+            <span id="tab-badge-posture-default" class="tab-mini-badge">20-8-2</span>
+          </div>
+        </button>
+
+        <button id="tab-posture-deep" class="protocol-tab" data-protocol="posture_deep_work" role="tab" aria-selected="false">
+          <div class="tab-indicator deep-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Posture (Deep Work)</span>
+            <span id="tab-badge-posture-deep" class="tab-mini-badge">45-15</span>
+          </div>
+        </button>
+
+        <button id="tab-micro" class="protocol-tab" data-protocol="musculoskeletal_reset" role="tab" aria-selected="false">
+          <div class="tab-indicator micro-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Musculoskeletal Reset</span>
+            <span id="tab-badge-micro" class="tab-mini-badge">30m/60s</span>
+          </div>
+        </button>
+
+        <button id="tab-stretches" class="protocol-tab" data-view="stretches" role="tab" aria-selected="false">
+          <div class="tab-indicator stretch-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Clinical Stretch Library</span>
+            <span class="tab-mini-badge">Library</span>
+          </div>
+        </button>
+      </section>
+
+      <!-- Protocol Timer & Guidance View -->
+      <section id="view-protocol" class="timer-deck">
+        <!-- Active Protocol Details & Circular Timer Card -->
+        <div class="timer-card glass-panel">
+          <!-- Protocol Metadata Header -->
+          <div class="protocol-detail-header">
+            <div class="proto-header-left">
+              <span id="detail-category-badge" class="badge-category">Eye Rest</span>
+              <h2 id="detail-protocol-name" class="detail-name">20-20-20 Rule</h2>
+              <span id="detail-institution" class="detail-source">American Academy of Ophthalmology (AAO)</span>
+            </div>
+            <div class="proto-header-right">
+              <span id="detail-cadence-pill" class="cadence-pill">Every 20 minutes for 20 seconds</span>
+            </div>
+          </div>
+
+          <!-- Circular Progress Ring & Stage Display -->
+          <div class="timer-visual-container">
+            <svg class="progress-ring" viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#3b82f6" />
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="100" cy="100" r="84" />
+              <circle id="ring-progress" class="ring-fg" cx="100" cy="100" r="84" />
+            </svg>
+
+            <!-- Center Content: Only stage pill & large clean timer digits -->
+            <div class="timer-center-info">
+              <div id="timer-stage-badge" class="stage-pill">Screen Focus</div>
+              <div id="timer-display" class="timer-digits">20:00</div>
+            </div>
+          </div>
+
+          <!-- Sit-Stand-Stretch Posture Cycle Stepper (Prominently shows current step) -->
+          <div id="posture-stepper-container" class="posture-stepper-panel">
+            <div class="stepper-header-row">
+              <span class="stepper-title-tag">POSTURE CYCLE STEP MONITOR</span>
+              <span id="stepper-current-label" class="stepper-current-label">Active Step: Sit (lumbar supported, elbows 90°)</span>
+            </div>
+
+            <div id="posture-steps-track" class="stepper-steps-grid">
+              <!-- Dynamically populated based on protocol (e.g. Sit, Stand, Move) -->
+            </div>
+
+            <!-- Clear Next Step Banner -->
+            <div class="next-step-banner">
+              <div class="next-step-icon">👉</div>
+              <div class="next-step-content">
+                <span class="next-step-title">CLEAR NEXT STEP:</span>
+                <span id="next-step-text" class="next-step-guidance">Next at 0:20: Raise desk / Stand for 8 minutes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Controls -->
+          <div class="timer-actions-row">
+            <button id="btn-toggle-timer" class="btn-primary" aria-label="Start or pause reminder timer">
+              <svg id="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <svg id="icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              <span id="label-toggle-timer">Start Protocol</span>
+            </button>
+
+            <button id="btn-break-now" class="btn-secondary" title="Trigger instant clinical break">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Take Break Now</span>
+            </button>
+
+            <button id="btn-reset-timer" class="btn-tertiary" title="Reset interval">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Protocol Clinical Citation Bar with Research Link -->
+          <div class="protocol-citation-footer">
+            <div class="citation-left">
+              <span class="citation-icon">🩺</span>
+              <span id="citation-text" class="citation-copy">
+                <strong>AAO Guidance:</strong> Look at an object at least 20 feet away to relax the ciliary muscles and reset your blink rate.
+              </span>
+            </div>
+            <a id="protocol-research-link" class="research-link-btn" href="https://www.aao.org/eye-health/tips-prevention/computer-displays" target="_blank" rel="noopener" title="Open source clinical research">
+              <span>Source Research</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Posture / Dynamic Phase Guidance Card -->
+        <div class="clinical-guidance-card glass-panel">
+          <div class="card-header-row">
+            <span class="card-tag" id="guidance-tag">Cornell Neutral Posture</span>
+            <span class="card-institute" id="guidance-institution">Cornell CUErgo</span>
+          </div>
+
+          <div class="guidance-visual-pane" id="guidance-visual">
+            <div class="posture-skeleton-graphic">
+              <div class="spine-indicator good" id="spine-indicator">
+                <span class="spine-dot head"></span>
+                <span class="spine-line neck"></span>
+                <span class="spine-dot shoulders"></span>
+                <span class="spine-line torso"></span>
+                <span class="spine-dot lumbar"></span>
+              </div>
+            </div>
+            <div class="guidance-bullets">
+              <div class="guidance-step">
+                <span class="step-num">01</span>
+                <div>
+                  <h4 id="guide-step-1-title">Eye Level Alignment</h4>
+                  <p id="guide-step-1-desc">Top third of monitor at or slightly below resting eye level.</p>
+                </div>
+              </div>
+              <div class="guidance-step">
+                <span class="step-num">02</span>
+                <div>
+                  <h4 id="guide-step-2-title">Forearms & Wrists</h4>
+                  <p id="guide-step-2-desc">Elbows open at 90°-100° with straight neutral wrists.</p>
+                </div>
+              </div>
+              <div class="guidance-step">
+                <span class="step-num">03</span>
+                <div>
+                  <h4 id="guide-step-3-title">Frequent Blinking</h4>
+                  <p id="guide-step-3-desc">Consciously blink every 4-5 seconds to preserve lipid layer.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Ergonomics Progress Trackers -->
+          <div class="daily-metrics-grid">
+            <div class="metric-box">
+              <span class="metric-num" id="metric-breaks-count">0</span>
+              <span class="metric-lbl">Breaks Taken</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-num" id="metric-eye-count">0</span>
+              <span class="metric-lbl">Eye Rests</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-num" id="metric-stand-min">0m</span>
+              <span class="metric-lbl">Standing Time</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-num" id="metric-compliance">100%</span>
+              <span class="metric-lbl">Compliance</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clinical Stretch Library Dedicated Tab (Moved to its own view to prevent vertical cutoffs) -->
+      <section id="view-stretches" class="stretches-section glass-panel hidden">
+        <div class="section-header">
+          <div>
+            <div class="stretch-pill-badge">Evidence-Based Physical Therapy</div>
+            <h2 class="section-title">Clinical Stretch Library</h2>
+            <p class="section-desc">Evidence-based stretches verified by Cornell University Ergonomics Web (Prof. Alan Hedge) to restore capillary perfusion and decompress neural pathways.</p>
+          </div>
+          <button id="btn-start-stretch-flow" class="pill-action-btn">
+            <span>Start Guided Stretch Routine</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <div id="stretch-cards-grid" class="stretch-grid">
+          <!-- Rendered dynamically via safe DOM insertion -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Guided Break Modal / Overlay -->
+    <div id="break-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="break-modal-title">
+      <div class="modal-card break-experience glass-panel-deep">
+        <div class="modal-top-bar">
+          <div class="modal-pill-info">
+            <span class="modal-indicator-dot"></span>
+            <span id="break-routine-type">Clinical Break in Progress</span>
+          </div>
+          <button id="btn-close-break" class="close-btn" aria-label="Exit Break">&times;</button>
+        </div>
+
+        <div class="break-hero">
+          <div class="break-ring-wrap">
+            <svg class="modal-progress-ring" viewBox="0 0 180 180">
+              <circle class="ring-bg" cx="90" cy="90" r="76" />
+              <circle id="modal-ring-progress" class="ring-fg break-pulse-fg" cx="90" cy="90" r="76" />
+            </svg>
+            <div class="break-center-digits">
+              <span id="modal-break-time" class="break-countdown">20</span>
+              <span class="break-unit">seconds</span>
+            </div>
+          </div>
+
+          <div class="break-narrative">
+            <h2 id="break-modal-title" class="break-title">20-Foot Horizon Relaxation</h2>
+            <p id="break-modal-desc" class="break-instruction">Look completely away from screens. Fixate on an object 20+ feet away and perform slow, conscious blinks.</p>
+            <div class="physiological-benefit-badge" id="break-modal-benefit">
+              <span>🩺 <strong>Clinical Benefit:</strong> Halts ciliary muscle accommodation spasm and restores tear film lipid layer.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Visual Pacing / Eye Exercise Canvas -->
+        <div id="break-interactive-stage" class="break-stage">
+          <div class="smooth-pursuit-canvas" id="eye-pursuit-stage">
+            <div class="infinity-track">
+              <div id="pursuit-orb" class="pursuit-orb"></div>
+            </div>
+            <div class="blink-counter-row">
+              <span class="blink-label">Conscious Blinks Counter:</span>
+              <div id="blink-beads" class="blink-beads-wrap">
+                <!-- 10 beads dynamically generated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Break Actions -->
+        <div class="break-footer">
+          <button id="btn-snooze-break" class="btn-ghost">Snooze 5m</button>
+          <button id="btn-next-exercise" class="btn-secondary">Next Routine</button>
+          <button id="btn-finish-break" class="btn-primary">Complete & Log Break</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cornell Ergonomics Self-Audit Modal -->
+    <div id="audit-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="audit-modal-title">
+      <div class="modal-card audit-dialog glass-panel-deep">
+        <div class="modal-top-bar">
+          <div class="modal-pill-info">
+            <span class="audit-icon">📐</span>
+            <span>Cornell University Ergonomics (CUErgo) Audit</span>
+          </div>
+          <button id="btn-close-audit" class="close-btn" aria-label="Close Audit">&times;</button>
+        </div>
+
+        <div class="audit-header">
+          <h2 id="audit-modal-title" class="audit-title">Workstation Ergonomic Self-Assessment</h2>
+          <p class="audit-subtitle">Clinical checklist to eliminate cumulative musculoskeletal strain and digital eye fatigue.</p>
+        </div>
+
+        <div class="audit-score-card">
+          <div class="audit-score-gauge">
+            <div class="gauge-ring">
+              <span id="audit-score-val" class="score-number">100%</span>
+            </div>
+            <div class="gauge-text">
+              <span id="audit-score-status" class="status-optimal">Optimal Neutral Posture</span>
+              <span class="score-sub">Based on 7 CUErgo Clinical Parameters</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="audit-items-list" class="audit-items-container">
+          <!-- Items populated via safe textContent DOM -->
+        </div>
+
+        <div class="audit-footer">
+          <button id="btn-save-audit" class="btn-primary">Apply & Save Ergonomics Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="modal-card settings-dialog glass-panel-deep">
+        <div class="modal-top-bar">
+          <div class="modal-pill-info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle></svg>
+            <span>Spine & Eye Configuration</span>
+          </div>
+          <button id="btn-close-settings" class="close-btn" aria-label="Close Settings">&times;</button>
+        </div>
+
+        <h2 id="settings-modal-title" class="settings-title">App & Notification Settings</h2>
+
+        <div class="settings-group">
+          <!-- Notification Test Button -->
+          <div class="settings-test-banner">
+            <div>
+              <strong>Verify Notifications & Audio Chime</strong>
+              <p class="setting-hint">Triggers immediate native OS alert and audio to verify system delivery</p>
+            </div>
+            <button id="btn-test-notification" class="btn-secondary">Test Notification Now</button>
+          </div>
+
+          <label class="setting-item">
+            <div class="setting-desc">
+              <span class="setting-name">Native OS Notifications</span>
+              <span class="setting-hint">Display desktop banner alerts when intervals expire</span>
+            </div>
+            <input type="checkbox" id="chk-native-notif" checked />
+          </label>
+
+          <label class="setting-item">
+            <div class="setting-desc">
+              <span class="setting-name">Acoustic Chimes (Web Audio + System Ping)</span>
+              <span class="setting-hint">Play harmonic singing bowl and alert audio cues</span>
+            </div>
+            <input type="checkbox" id="chk-audio-chimes" checked />
+          </label>
+
+          <label class="setting-item">
+            <div class="setting-desc">
+              <span class="setting-name">Auto-Launch Break Experience</span>
+              <span class="setting-hint">Bring guided break overlay to focus when timer ends</span>
+            </div>
+            <input type="checkbox" id="chk-auto-break" checked />
+          </label>
+
+          <div class="setting-divider"></div>
+
+          <div class="setting-custom-row">
+            <span class="setting-name">Eye Rest Cadence (min)</span>
+            <input type="number" id="inp-aao-time" min="5" max="60" value="20" class="num-input" />
+          </div>
+
+          <div class="setting-custom-row">
+            <span class="setting-name">Posture (Default) Sit Duration (min)</span>
+            <input type="number" id="inp-sit-time" min="5" max="60" value="20" class="num-input" />
+          </div>
+
+          <div class="setting-custom-row">
+            <span class="setting-name">Posture (Default) Stand Duration (min)</span>
+            <input type="number" id="inp-stand-time" min="1" max="30" value="8" class="num-input" />
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button id="btn-save-settings" class="btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- About & Open Source License Modal -->
+    <div id="about-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+      <div class="modal-card about-dialog glass-panel-deep">
+        <div class="modal-top-bar">
+          <div class="modal-pill-info">
+            <span class="about-icon">🛡️</span>
+            <span>About Spine & Eye</span>
+          </div>
+          <button id="btn-close-about" class="close-btn" aria-label="Close About">&times;</button>
+        </div>
+
+        <div class="about-header">
+          <img src="/app-icon.png" alt="Spine & Eye" class="about-logo" width="48" height="48" style="border-radius: 10px;" />
+          <div>
+            <h2 id="about-modal-title" class="about-title">Spine & Eye Desktop</h2>
+            <span id="about-app-version" class="about-version">v0.1.0 • Clinical Ergonomics & Ocular Companion</span>
+          </div>
+        </div>
+
+        <div class="about-license-card">
+          <div class="license-badge-row">
+            <span class="license-badge">MIT License</span>
+            <span class="source-badge">Open Source</span>
+          </div>
+          <p class="license-summary">
+            <strong>Permitted:</strong> Free personal and commercial use, modification, distribution, and sublicensing under the standard MIT License.
+          </p>
+          <div class="license-copyright">
+            <strong>Copyright:</strong> Copyright &copy; 2026 Raul E. Blanco (<code>rauleblanco</code>)
+          </div>
+        </div>
+
+        <div class="about-research-section">
+          <span class="about-subhead">Project & Repository Links</span>
+          <div class="about-links-list">
+            <a href="https://rauleblanco.com/spine-eye-app" target="_blank" rel="noopener" class="about-link-item">
+              <span>🌐 Official Project Page (rauleblanco.com/spine-eye-app)</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+            <a href="https://github.com/rauleblanco/spine-eye-app" target="_blank" rel="noopener" class="about-link-item">
+              <span>💻 GitHub Repository (github.com/rauleblanco/spine-eye-app)</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="vibe-coding-badge">
+          <div class="vibe-icon">⚡</div>
+          <div class="vibe-text">
+            <strong>Artificial Intelligence Co-Authorship</strong>
+            <p>This entire application and codebase was vibe coded with <strong>Gemini 3.8 Flash Medium</strong> (Google DeepMind Advanced Agentic Coding).</p>
+          </div>
+        </div>
+
+        <div class="about-research-section">
+          <span class="about-subhead">Clinical Foundations & Research Sources</span>
+          <div class="about-links-list">
+            <a href="https://www.aao.org/eye-health/tips-prevention/computer-displays" target="_blank" rel="noopener" class="about-link-item">
+              <span>American Academy of Ophthalmology (AAO) - Digital Eye Strain & 20-20-20 Rule</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+            <a href="https://ergo.human.cornell.edu/cuergoguide.html" target="_blank" rel="noopener" class="about-link-item">
+              <span>Cornell University Ergonomics Web (CUErgo) - Prof. Alan Hedge 20-8-2 Protocol</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="about-disclaimer-card">
+          <p class="about-disclaimer-text">
+            <strong>Medical Disclaimer:</strong> Spine & Eye is a personal ergonomics and wellness reminder tool designed to encourage healthy movement habits. It is not a certified medical device and does not provide clinical diagnosis, medical advice, or treatment. Users experiencing persistent musculoskeletal pain, repetitive strain injuries, or eye disorders should consult a licensed healthcare professional.
+          </p>
+          <p class="about-disclaimer-text">
+            <strong>Trademark Notice:</strong> American Academy of Ophthalmology, Cornell University, and CUErgo are trademarks or service marks of their respective institutions. Their reference in this software constitutes nominative fair use for scientific attribution and educational reference only, and implies no sponsorship, endorsement, or commercial affiliation.
+          </p>
+        </div>
+
+        <div class="about-footer">
+          <button id="btn-dismiss-about" class="btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

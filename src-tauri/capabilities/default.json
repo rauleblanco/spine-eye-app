@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Enables permissions for window management and native notifications",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "notification:default"
+  ]
+}

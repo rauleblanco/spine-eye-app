@@ -1,0 +1,28 @@
+[package]
+name = "spine-eye"
+version = "0.1.0"
+description = "Always-on cross-platform background reminder app rooted in Cornell CUErgo & AAO clinical ergonomics standards"
+authors = ["Spine & Eye Team"]
+license = "MIT"
+repository = "https://github.com/rauleblanco/spine-eye-app"
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "spine-eye"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2.7.1" }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.12.2", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2"
+notify-rust = "4"
