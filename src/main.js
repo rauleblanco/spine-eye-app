@@ -59,6 +59,10 @@ async function initTauriBindings() {
           appState.tickTimers();
         });
       }
+
+      if (typeof appState?.renderAboutVersion === 'function') {
+        appState.renderAboutVersion();
+      }
     } catch (err) {
       console.warn('Tauri IPC initialization note:', err);
     }
@@ -173,7 +177,7 @@ class AppState {
     initTauriBindings();
   }
 
-  renderAboutVersion() {
+  async renderAboutVersion() {
     const versionEl = document.getElementById('about-app-version');
     if (!versionEl) return;
     const baseVersion = '0.1.0';
@@ -187,6 +191,18 @@ class AppState {
         versionText += ` (${commitSha})`;
       }
     }
+
+    if (isTauri && tauriCore?.invoke) {
+      try {
+        const nativeVersion = await tauriCore.invoke('get_app_version_string');
+        if (nativeVersion && nativeVersion.trim()) {
+          versionText = nativeVersion;
+        }
+      } catch (err) {
+        // Fall back to Vite-generated string
+      }
+    }
+
     versionEl.textContent = `${versionText} • Clinical Ergonomics & Ocular Companion`;
   }
 
@@ -801,7 +817,7 @@ class AppState {
     const etime = `${emins}:${String(esecs).padStart(2, '0')}`;
 
     const activePStep = posture.proto.steps[posture.stepIndex];
-    let trayTitle = 'Spine & Eye';
+    let trayTitle = 'Spine and Eye';
 
     // Check if an eye rest break is currently active:
     // (stepIndex 1: 20-Foot Horizon Gaze) OR break modal is currently open for eye rest
@@ -827,7 +843,7 @@ class AppState {
     }
 
     const eyeStatusText = isEyeBreakActive ? `Rest Now (${etime})` : `${etime} to rest`;
-    const trayTooltip = `Spine & Eye | Posture: ${activePStep.name} (${ptime} left) • Eye: ${eyeStatusText}`;
+    const trayTooltip = `Spine and Eye | Posture: ${activePStep.name} (${ptime} left) • Eye: ${eyeStatusText}`;
 
     // Update in-app header status pill
     const trayLabel = document.getElementById('tray-live-label');

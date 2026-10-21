@@ -5,6 +5,8 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
+#[cfg(target_os = "macos")]
+use tauri::menu::{AboutMetadata, Submenu};
 use tauri_plugin_notification::NotificationExt;
 
 static ALLOW_EXIT: AtomicBool = AtomicBool::new(false);
@@ -188,6 +190,122 @@ fn get_clinical_foundation() -> serde_json::Value {
     })
 }
 
+#[tauri::command]
+fn get_app_version_string() -> String {
+    get_app_version()
+}
+
+pub fn get_app_version() -> String {
+    let base = env!("CARGO_PKG_VERSION");
+    let build_num = option_env!("VITE_BUILD_NUMBER")
+        .or(option_env!("APP_BUILD_NUMBER"))
+        .or(option_env!("GITHUB_RUN_NUMBER"));
+    let commit_sha = option_env!("VITE_COMMIT_SHA")
+        .or(option_env!("APP_COMMIT_SHA"))
+        .or(option_env!("GITHUB_SHA"));
+
+    let mut version = format!("v{}", base);
+    if let Some(b) = build_num {
+        if !b.is_empty() {
+            version.push_str(&format!(" • Build #{}", b));
+            if let Some(sha) = commit_sha {
+                if !sha.is_empty() {
+                    let short_sha = if sha.len() >= 7 { &sha[..7] } else { sha };
+                    version.push_str(&format!(" ({})", short_sha));
+                }
+            }
+        }
+    }
+    version
+}
+
+#[cfg(target_os = "macos")]
+fn setup_app_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let handle = app.handle();
+    let app_name = "Spine and Eye";
+    let app_version = get_app_version();
+
+    let about_metadata = AboutMetadata {
+        name: Some(app_name.to_string()),
+        version: Some(app_version),
+        short_version: Some(env!("CARGO_PKG_VERSION").to_string()),
+        authors: Some(vec!["Spine and Eye Team".to_string()]),
+        comments: Some("Clinical Ergonomics & Ocular Companion".to_string()),
+        copyright: Some("Copyright © 2026 Raul E. Blanco".to_string()),
+        license: Some("MIT License".to_string()),
+        website: Some("https://github.com/rauleblanco/spine-eye-app".to_string()),
+        website_label: Some("GitHub Repository".to_string()),
+        ..Default::default()
+    };
+
+    let item_about = PredefinedMenuItem::about(
+        handle,
+        Some(format!("About {}", app_name)),
+        Some(about_metadata),
+    )?;
+
+    let app_submenu = Submenu::with_items(
+        handle,
+        app_name,
+        true,
+        &[
+            &item_about,
+            &PredefinedMenuItem::separator(handle)?,
+            &PredefinedMenuItem::services(handle, None)?,
+            &PredefinedMenuItem::separator(handle)?,
+            &PredefinedMenuItem::hide(handle, Some(format!("Hide {}", app_name)))?,
+            &PredefinedMenuItem::hide_others(handle, None)?,
+            &PredefinedMenuItem::show_all(handle, None)?,
+            &PredefinedMenuItem::separator(handle)?,
+            &PredefinedMenuItem::quit(handle, Some(format!("Quit {}", app_name)))?,
+        ],
+    )?;
+
+    let file_submenu = Submenu::with_items(
+        handle,
+        "File",
+        true,
+        &[
+            &PredefinedMenuItem::close_window(handle, None)?,
+        ],
+    )?;
+
+    let edit_submenu = Submenu::with_items(
+        handle,
+        "Edit",
+        true,
+        &[
+            &PredefinedMenuItem::undo(handle, None)?,
+            &PredefinedMenuItem::redo(handle, None)?,
+            &PredefinedMenuItem::separator(handle)?,
+            &PredefinedMenuItem::cut(handle, None)?,
+            &PredefinedMenuItem::copy(handle, None)?,
+            &PredefinedMenuItem::paste(handle, None)?,
+            &PredefinedMenuItem::select_all(handle, None)?,
+        ],
+    )?;
+
+    let window_submenu = Submenu::with_items(
+        handle,
+        "Window",
+        true,
+        &[
+            &PredefinedMenuItem::minimize(handle, None)?,
+            &PredefinedMenuItem::fullscreen(handle, None)?,
+        ],
+    )?;
+
+    let menu = Menu::with_items(handle, &[&app_submenu, &file_submenu, &edit_submenu, &window_submenu])?;
+    app.set_menu(menu)?;
+
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn setup_app_menu(_app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
+
 fn log_debug(msg: &str) {
     eprintln!("[Spine & Eye] {}", msg);
     #[cfg(target_os = "macos")]
@@ -207,7 +325,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let item_status = MenuItem::with_id(
         app,
         "status_title",
-        "Spine & Eye: Active (AAO & CUErgo)",
+        "Spine and Eye: Active (AAO and CUErgo)",
         false,
         None::<&str>,
     )?;
@@ -215,7 +333,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let item_start_both = MenuItem::with_id(
         app,
         "start_both",
-        "Start Vision & Posture (1-Click)",
+        "Start Vision and Posture (1-Click)",
         true,
         None::<&str>,
     )?;
@@ -251,7 +369,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let item_hide = MenuItem::with_id(
         app,
         "hide_tray",
-        "Hide to Menu Bar / Tray",
+        "Hide to Menu Bar / Taskbar",
         true,
         None::<&str>,
     )?;
@@ -259,7 +377,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let item_quit = MenuItem::with_id(
         app,
         "quit_app",
-        "Quit Spine & Eye",
+        "Quit Spine and Eye",
         true,
         None::<&str>,
     )?;
@@ -287,7 +405,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
         .or_else(|| app.default_window_icon().cloned());
 
     let mut builder = TrayIconBuilder::with_id("main-tray")
-        .tooltip("Spine & Eye - Clinical Ergonomics Companion")
+        .tooltip("Spine and Eye - Clinical Ergonomics Companion")
         .icon_as_template(true)
         .menu(&tray_menu)
         .show_menu_on_left_click(false)
@@ -379,7 +497,8 @@ pub fn run() {
             update_tray_status,
             open_external_url,
             trigger_break_notification,
-            get_clinical_foundation
+            get_clinical_foundation,
+            get_app_version_string
         ])
         .setup(|app| {
             log_debug("Tauri setup hook invoked");
@@ -416,6 +535,14 @@ pub fn run() {
                 log_debug(&format!("Warning: Could not initialize system tray: {}", e));
             } else {
                 log_debug("System tray initialized successfully");
+            }
+
+            // Setup macOS Application Menu with dynamically resolved build version
+            log_debug("Initializing application menu");
+            if let Err(e) = setup_app_menu(app) {
+                log_debug(&format!("Warning: Could not initialize app menu: {}", e));
+            } else {
+                log_debug("Application menu initialized successfully");
             }
 
             // Spawn background heartbeat tick thread to keep webview active and prevent throttling
