@@ -3537,7 +3537,7 @@ dependencies = [
 
 [[package]]
 name = "spine-eye"
-version = "0.1.0"
+version = "0.1.26"
 dependencies = [
  "log",
  "notify-rust",

@@ -180,7 +180,7 @@ class AppState {
   async renderAboutVersion() {
     const versionEl = document.getElementById('about-app-version');
     if (!versionEl) return;
-    const baseVersion = '0.1.0';
+    const baseVersion = import.meta.env.VITE_APP_VERSION || '0.1.26';
     const buildNum = import.meta.env.VITE_BUILD_NUMBER;
     const commitSha = import.meta.env.VITE_COMMIT_SHA ? import.meta.env.VITE_COMMIT_SHA.substring(0, 7) : null;
 
@@ -203,6 +203,7 @@ class AppState {
       }
     }
 
+    this.currentAppVersion = versionText;
     versionEl.textContent = `${versionText} • Clinical Ergonomics & Ocular Companion`;
   }
 
@@ -1597,7 +1598,8 @@ class AppState {
           card?.classList.remove('hidden', 'error');
           card?.classList.add('up-to-date');
           if (badge) badge.textContent = 'Up to Date';
-          if (versionTag) versionTag.textContent = 'v0.1.0';
+          const displayedVersion = this.currentAppVersion ? this.currentAppVersion.split(' ')[0] : `v${import.meta.env.VITE_APP_VERSION || '0.1.26'}`;
+          if (versionTag) versionTag.textContent = displayedVersion;
           if (notes) notes.textContent = 'You are running the latest version of Spine & Eye Desktop Companion.';
           setTimeout(() => {
             if (!this.activeUpdate) card?.classList.add('hidden');

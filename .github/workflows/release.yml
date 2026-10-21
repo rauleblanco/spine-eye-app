@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release version tag (e.g. v0.1.0)'
+        description: 'Release version tag (e.g. v0.1.27 or leave blank for auto)'
         required: false
-        default: 'v0.1.0'
+        default: ''
 
 concurrency:
   group: release-${{ github.ref }}
@@ -66,6 +66,39 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
+      - name: Synchronize Dynamic Semantic Version
+        shell: bash
+        run: |
+          BUILD_NUM="${{ github.run_number }}"
+          if [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref_name }}" =~ ^v[0-9] ]]; then
+            TARGET_VER="${GITHUB_REF_NAME#v}"
+          elif [ -n "${{ inputs.release_tag }}" ] && [[ "${{ inputs.release_tag }}" =~ ^v[0-9] ]]; then
+            TARGET_VER="${{ inputs.release_tag }}"
+            TARGET_VER="${TARGET_VER#v}"
+          else
+            TARGET_VER="0.1.${BUILD_NUM}"
+          fi
+          echo "TARGET_VER=$TARGET_VER" >> $GITHUB_ENV
+          echo "VITE_APP_VERSION=$TARGET_VER" >> $GITHUB_ENV
+          echo "Synchronizing project build version to: $TARGET_VER"
+
+          # 1. Update package.json
+          npm version "$TARGET_VER" --no-git-tag-version --allow-same-version
+
+          # 2. Update src-tauri/tauri.conf.json and src-tauri/Cargo.toml
+          node -e "
+            const fs = require('fs');
+            const confPath = './src-tauri/tauri.conf.json';
+            const conf = JSON.parse(fs.readFileSync(confPath, 'utf8'));
+            conf.version = '$TARGET_VER';
+            fs.writeFileSync(confPath, JSON.stringify(conf, null, 2) + '\n');
+
+            const cargoPath = './src-tauri/Cargo.toml';
+            let cargo = fs.readFileSync(cargoPath, 'utf8');
+            cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$TARGET_VER\"');
+            fs.writeFileSync(cargoPath, cargo);
+          "
+
       - name: Build Web Application
         run: npm run build
 
@@ -87,8 +120,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.0-build-{0}', github.run_number) }}
-          releaseName: 'Spine & Eye Release ${{ github.ref_name }}'
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}
+          releaseName: 'Spine & Eye Release v${{ env.TARGET_VER || format('0.1.{0}', github.run_number) }}'
           releaseBody: |
             ## Spine & Eye Clinical Ergonomics Desktop Companion
             Always-on cross-platform background reminder app built with Tauri v2.

@@ -1,6 +1,6 @@
 [package]
 name = "spine-eye"
-version = "0.1.0"
+version = "0.1.26"
 description = "Always-on cross-platform background reminder app rooted in Cornell CUErgo & AAO clinical ergonomics standards"
 authors = ["Spine & Eye Team"]
 license = "MIT"
