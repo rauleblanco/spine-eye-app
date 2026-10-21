@@ -120,8 +120,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}
-          releaseName: 'Spine & Eye Release v${{ env.TARGET_VER || format('0.1.{0}', github.run_number) }}'
+          tagName: "${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}"
+          releaseName: "Spine & Eye Release ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}"
           releaseBody: |
             ## Spine & Eye Clinical Ergonomics Desktop Companion
             Always-on cross-platform background reminder app built with Tauri v2.
