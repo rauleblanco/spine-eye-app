@@ -1689,9 +1689,215 @@ body {
   line-height: 1.2;
 }
 
+.about-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-version-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .about-version {
   font-size: 12px;
   color: var(--text-dim);
+}
+
+.btn-check-updates {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: var(--radius-sm);
+  color: #38bdf8;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-check-updates:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-check-updates:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* In-App Auto-Updater Card */
+.updater-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.09));
+  border: 1px solid rgba(16, 185, 129, 0.38);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.updater-card.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.updater-card.error .updater-pill {
+  color: #f87171;
+}
+
+.updater-card.up-to-date {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.updater-card.up-to-date .updater-pill {
+  color: #60a5fa;
+}
+
+.updater-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.updater-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.updater-pill {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #34d399;
+}
+
+.updater-version-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.updater-notes {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.updater-progress-wrap {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.updater-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #06b6d4);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.updater-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-update-action {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #03141a;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+}
+
+.btn-update-action:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-update-relaunch {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.35);
+}
+
+.btn-update-relaunch:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.updater-status-text {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* Header Update Pill */
+.header-update-pill {
+  background: rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  color: #34d399 !important;
+  font-weight: 700;
+}
+
+.header-update-pill:hover {
+  background: rgba(16, 185, 129, 0.28) !important;
+  border-color: #34d399 !important;
+  color: #ffffff !important;
+}
+
+.update-pulse-dot {
+  width: 7px;
+  height: 7px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
 }
 
 .about-license-card {

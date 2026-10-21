@@ -28,11 +28,12 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; frame-src 'self' https://github.com; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: asset:;"
+      "csp": "default-src 'self'; frame-src 'self' https://github.com; connect-src 'self' ipc: http://ipc.localhost https://github.com https://objects.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: asset:;"
     }
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -50,6 +51,14 @@
       "nsis": {
         "installMode": "currentUser"
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFDOTA1RTRFN0IwQzY1QjkKUldTNVpReDdUbDZRSEVLTm93K0ZZeThQbVkvb2dwS0RIQUdGTFF3YU5tY1gwL3pxTnpnZHllTjAK",
+      "endpoints": [
+        "https://github.com/rauleblanco/spine-eye-app/releases/latest/download/latest.json"
+      ]
     }
   }
 }

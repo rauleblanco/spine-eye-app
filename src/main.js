@@ -7,6 +7,8 @@ const isTauri = typeof window !== 'undefined' && Boolean(window.__TAURI_INTERNAL
 let tauriCore = null;
 let tauriEvent = null;
 let tauriNotification = null;
+let tauriUpdater = null;
+let tauriProcess = null;
 
 async function initTauriBindings() {
   if (isTauri) {
@@ -14,6 +16,12 @@ async function initTauriBindings() {
       tauriCore = await import('@tauri-apps/api/core');
       tauriEvent = await import('@tauri-apps/api/event');
       tauriNotification = await import('@tauri-apps/plugin-notification');
+      try {
+        tauriUpdater = await import('@tauri-apps/plugin-updater');
+        tauriProcess = await import('@tauri-apps/plugin-process');
+      } catch (updaterErr) {
+        console.warn('Tauri updater/process plugin note:', updaterErr);
+      }
 
       // Request native notification permissions if available
       try {
@@ -1473,6 +1481,201 @@ class AppState {
         if (href) openExternalUrl(href);
       });
     });
+
+    // Initialize In-App Updater
+    this.initUpdater();
+  }
+
+  initUpdater() {
+    this.activeUpdate = null;
+
+    document.getElementById('btn-check-updates')?.addEventListener('click', () => {
+      this.checkForUpdates(true);
+    });
+
+    document.getElementById('btn-header-update')?.addEventListener('click', () => {
+      document.getElementById('about-modal')?.classList.remove('hidden');
+      this.checkForUpdates(true);
+    });
+
+    document.getElementById('btn-dismiss-updater')?.addEventListener('click', () => {
+      document.getElementById('updater-card')?.classList.add('hidden');
+    });
+
+    document.getElementById('btn-download-update')?.addEventListener('click', () => {
+      this.downloadAndInstallUpdate();
+    });
+
+    document.getElementById('btn-relaunch-app')?.addEventListener('click', () => {
+      this.relaunchApp();
+    });
+
+    // Silent background check after 5s on desktop launch
+    setTimeout(() => {
+      if (isTauri) {
+        this.checkForUpdates(false);
+      }
+    }, 5000);
+  }
+
+  async checkForUpdates(interactive = false) {
+    const btnCheck = document.getElementById('btn-check-updates');
+    const spinner = document.getElementById('icon-update-spinner');
+    const refreshIcon = document.getElementById('icon-update-refresh');
+    const labelCheck = document.getElementById('label-check-updates');
+    const card = document.getElementById('updater-card');
+    const badge = document.getElementById('updater-badge');
+    const versionTag = document.getElementById('updater-new-version');
+    const notes = document.getElementById('updater-notes');
+    const downloadBtn = document.getElementById('btn-download-update');
+    const relaunchBtn = document.getElementById('btn-relaunch-app');
+    const progressWrap = document.getElementById('updater-progress-wrap');
+    const statusText = document.getElementById('updater-status-text');
+    const headerPill = document.getElementById('btn-header-update');
+
+    if (interactive) {
+      if (btnCheck) btnCheck.disabled = true;
+      spinner?.classList.remove('hidden');
+      refreshIcon?.classList.add('hidden');
+      if (labelCheck) labelCheck.textContent = 'Checking...';
+
+      card?.classList.remove('hidden', 'error', 'up-to-date');
+      if (badge) badge.textContent = 'Checking for updates...';
+      if (versionTag) versionTag.textContent = '';
+      if (notes) notes.textContent = 'Verifying cryptographic release manifest from GitHub...';
+      downloadBtn?.classList.add('hidden');
+      relaunchBtn?.classList.add('hidden');
+      progressWrap?.classList.add('hidden');
+      if (statusText) statusText.textContent = '';
+    }
+
+    if (!isTauri || !tauriUpdater?.check) {
+      if (interactive) {
+        if (badge) badge.textContent = 'Development Environment';
+        if (notes) notes.textContent = 'In-app updater operates inside packaged desktop binary builds with minisign verification.';
+        card?.classList.add('up-to-date');
+        if (btnCheck) btnCheck.disabled = false;
+        spinner?.classList.add('hidden');
+        refreshIcon?.classList.remove('hidden');
+        if (labelCheck) labelCheck.textContent = 'Check for Updates';
+      }
+      return;
+    }
+
+    try {
+      const update = await tauriUpdater.check();
+      if (update?.available) {
+        this.activeUpdate = update;
+        headerPill?.classList.remove('hidden');
+        card?.classList.remove('hidden', 'error', 'up-to-date');
+        if (badge) badge.textContent = 'Update Available';
+        if (versionTag) versionTag.textContent = `v${update.version}`;
+        if (notes) notes.textContent = update.body || `Version ${update.version} is now available.`;
+        if (downloadBtn) {
+          downloadBtn.classList.remove('hidden');
+          downloadBtn.disabled = false;
+          downloadBtn.textContent = 'Download & Install';
+        }
+      } else {
+        if (interactive) {
+          card?.classList.remove('hidden', 'error');
+          card?.classList.add('up-to-date');
+          if (badge) badge.textContent = 'Up to Date';
+          if (versionTag) versionTag.textContent = 'v0.1.0';
+          if (notes) notes.textContent = 'You are running the latest version of Spine & Eye Desktop Companion.';
+          setTimeout(() => {
+            if (!this.activeUpdate) card?.classList.add('hidden');
+          }, 4000);
+        }
+      }
+    } catch (err) {
+      console.warn('Tauri update check error:', err);
+      if (interactive) {
+        card?.classList.remove('hidden', 'up-to-date');
+        card?.classList.add('error');
+        if (badge) badge.textContent = 'Update Server Note';
+        if (notes) notes.textContent = 'No update manifest found or server unreachable. Updates are signed and published via GitHub Releases.';
+      }
+    } finally {
+      if (btnCheck) btnCheck.disabled = false;
+      spinner?.classList.add('hidden');
+      refreshIcon?.classList.remove('hidden');
+      if (labelCheck) labelCheck.textContent = 'Check for Updates';
+    }
+  }
+
+  async downloadAndInstallUpdate() {
+    if (!this.activeUpdate) return;
+    const downloadBtn = document.getElementById('btn-download-update');
+    const relaunchBtn = document.getElementById('btn-relaunch-app');
+    const progressWrap = document.getElementById('updater-progress-wrap');
+    const progressBar = document.getElementById('updater-progress-bar');
+    const statusText = document.getElementById('updater-status-text');
+    const badge = document.getElementById('updater-badge');
+
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = 'Downloading...';
+    }
+    progressWrap?.classList.remove('hidden');
+    if (progressBar) progressBar.style.width = '0%';
+    if (statusText) statusText.textContent = 'Starting secure package download...';
+
+    try {
+      let downloaded = 0;
+      let contentLength = 0;
+
+      await this.activeUpdate.downloadAndInstall((event) => {
+        if (event.event === 'Started') {
+          contentLength = event.data?.contentLength || 0;
+        } else if (event.event === 'Progress') {
+          downloaded += event.data?.chunkLength || 0;
+          if (contentLength > 0) {
+            const pct = Math.min(100, Math.round((downloaded / contentLength) * 100));
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (statusText) {
+              const mbDl = (downloaded / (1024 * 1024)).toFixed(1);
+              const mbTot = (contentLength / (1024 * 1024)).toFixed(1);
+              statusText.textContent = `${pct}% (${mbDl} MB / ${mbTot} MB)`;
+            }
+          } else {
+            if (statusText) {
+              const mbDl = (downloaded / (1024 * 1024)).toFixed(1);
+              statusText.textContent = `${mbDl} MB downloaded`;
+            }
+          }
+        } else if (event.event === 'Finished') {
+          if (progressBar) progressBar.style.width = '100%';
+          if (statusText) statusText.textContent = 'Package verified and unpacked!';
+        }
+      });
+
+      if (badge) badge.textContent = 'Update Installed';
+      downloadBtn?.classList.add('hidden');
+      relaunchBtn?.classList.remove('hidden');
+      if (statusText) statusText.textContent = 'Ready to launch updated version.';
+    } catch (err) {
+      console.error('Update download/install error:', err);
+      if (downloadBtn) {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = 'Retry Install';
+      }
+      if (statusText) statusText.textContent = `Error during installation: ${err.message || err}`;
+    }
+  }
+
+  async relaunchApp() {
+    if (tauriProcess?.relaunch) {
+      try {
+        await tauriProcess.relaunch();
+      } catch (err) {
+        console.warn('Relaunch error:', err);
+        // Fallback to reload if relaunch fails
+        window.location.reload();
+      }
+    } else {
+      window.location.reload();
+    }
   }
 }
 

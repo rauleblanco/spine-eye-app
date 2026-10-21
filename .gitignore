@@ -33,6 +33,8 @@ Thumbs.db
 !.env.example
 *.pem
 *.key
+*.key.pub
+spine-eye.key*
 *.p12
 *.pfx
 *.keystore

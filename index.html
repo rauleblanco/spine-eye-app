@@ -59,6 +59,11 @@
             <span>Ergo Audit</span>
           </button>
 
+          <button id="btn-header-update" class="header-pill-btn header-update-pill hidden" title="New application update available! Click to inspect.">
+            <span class="update-pulse-dot"></span>
+            <span>Update Available</span>
+          </button>
+
           <button id="btn-about-open" class="icon-button" title="About & Open Source License" aria-label="About and License">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -538,9 +543,36 @@
 
         <div class="about-header">
           <img src="/app-icon.png" alt="Spine & Eye" class="about-logo" width="48" height="48" style="border-radius: 10px;" />
-          <div>
+          <div class="about-header-text">
             <h2 id="about-modal-title" class="about-title">Spine & Eye Desktop</h2>
-            <span id="about-app-version" class="about-version">v0.1.0 • Clinical Ergonomics & Ocular Companion</span>
+            <div class="about-version-row">
+              <span id="about-app-version" class="about-version">v0.1.0 • Clinical Ergonomics Companion</span>
+              <button id="btn-check-updates" class="btn-check-updates" title="Check for updates">
+                <svg id="icon-update-spinner" class="spin-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                <svg id="icon-update-refresh" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                <span id="label-check-updates">Check for Updates</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- In-App Auto-Updater Status Card -->
+        <div id="updater-card" class="updater-card hidden">
+          <div class="updater-card-header">
+            <div class="updater-badge-group">
+              <span class="updater-pill" id="updater-badge">Update Available</span>
+              <span class="updater-version-tag" id="updater-new-version">v0.2.0</span>
+            </div>
+            <button id="btn-dismiss-updater" class="close-btn" style="font-size: 16px; padding: 0 4px;" title="Dismiss">&times;</button>
+          </div>
+          <p class="updater-notes" id="updater-notes">A new version is available with clinical improvements.</p>
+          <div id="updater-progress-wrap" class="updater-progress-wrap hidden">
+            <div class="updater-progress-bar" id="updater-progress-bar" style="width: 0%;"></div>
+          </div>
+          <div class="updater-btn-row">
+            <button id="btn-download-update" class="btn-update-action">Download & Install</button>
+            <button id="btn-relaunch-app" class="btn-update-relaunch hidden">Restart to Apply</button>
+            <span id="updater-status-text" class="updater-status-text"></span>
           </div>
         </div>
 
