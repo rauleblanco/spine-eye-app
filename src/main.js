@@ -482,11 +482,38 @@ class AppState {
     engine.remainingSec = firstStep.durationSec;
     engine.targetEndTime = null;
 
-    this.updateMasterBarDisplay();
-    this.updateTabsDisplay();
-    if (this.activeView !== 'stretches') {
+    if (this.activeView !== 'stretches' && this.currentEngine === engine) {
+      this.renderPostureStepper(engine.proto, 0);
       this.updateProtocolTimerCardDisplay();
     }
+    this.updateMasterBarDisplay();
+    this.updateTabsDisplay();
+    this.syncTrayStatus();
+  }
+
+  resetAllProtocols() {
+    if (this.breakTimerInterval) {
+      clearInterval(this.breakTimerInterval);
+      this.breakTimerInterval = null;
+    }
+    document.getElementById('break-modal')?.classList.add('hidden');
+    this.breakActiveProtocolKey = null;
+
+    for (const engine of Object.values(this.engines)) {
+      this.pauseEngine(engine);
+      engine.stepIndex = 0;
+      const firstStep = engine.proto.steps[0];
+      engine.durationSec = firstStep.durationSec;
+      engine.remainingSec = firstStep.durationSec;
+      engine.targetEndTime = null;
+    }
+
+    if (this.activeView !== 'stretches') {
+      this.renderPostureStepper(this.currentEngine.proto, 0);
+      this.updateProtocolTimerCardDisplay();
+    }
+    this.updateMasterBarDisplay();
+    this.updateTabsDisplay();
     this.syncTrayStatus();
   }
 
@@ -1247,6 +1274,11 @@ class AppState {
     // Master 1-Click Toggle Button
     document.getElementById('btn-master-toggle')?.addEventListener('click', () => {
       this.startBothProtocols();
+    });
+
+    // Master Reset All Button (Reset both vision and posture protocols)
+    document.getElementById('btn-master-reset')?.addEventListener('click', () => {
+      this.resetAllProtocols();
     });
 
     // Individual Protocol Timer card controls
