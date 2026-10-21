@@ -83,7 +83,7 @@ fn open_external_url(url: String) -> Result<(), String> {
 
 #[tauri::command]
 fn trigger_break_notification(
-    app: AppHandle,
+    _app: AppHandle,
     title: String,
     body: String,
     sound_enabled: Option<bool>,
@@ -156,7 +156,7 @@ fn trigger_break_notification(
 
     #[cfg(not(target_os = "macos"))]
     {
-        let mut builder = app.notification().builder();
+        let mut builder = _app.notification().builder();
         builder = builder.title(&title).body(&body).icon("icon".to_string());
         if play_sound {
             builder = builder.sound("default".to_string());
@@ -238,9 +238,13 @@ fn setup_app_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
+    let about_title = format!("About {}", app_name);
+    let hide_title = format!("Hide {}", app_name);
+    let quit_title = format!("Quit {}", app_name);
+
     let item_about = PredefinedMenuItem::about(
         handle,
-        Some(format!("About {}", app_name)),
+        Some(&about_title),
         Some(about_metadata),
     )?;
 
@@ -253,11 +257,11 @@ fn setup_app_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &PredefinedMenuItem::separator(handle)?,
             &PredefinedMenuItem::services(handle, None)?,
             &PredefinedMenuItem::separator(handle)?,
-            &PredefinedMenuItem::hide(handle, Some(format!("Hide {}", app_name)))?,
+            &PredefinedMenuItem::hide(handle, Some(&hide_title))?,
             &PredefinedMenuItem::hide_others(handle, None)?,
             &PredefinedMenuItem::show_all(handle, None)?,
             &PredefinedMenuItem::separator(handle)?,
-            &PredefinedMenuItem::quit(handle, Some(format!("Quit {}", app_name)))?,
+            &PredefinedMenuItem::quit(handle, Some(&quit_title))?,
         ],
     )?;
 
