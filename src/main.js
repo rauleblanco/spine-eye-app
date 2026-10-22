@@ -974,12 +974,21 @@ class AppState {
       stageEl.style.color = proto.accentColor;
     }
 
+    // Horizontal linear progress bar
+    const linearProgress = document.getElementById('linear-timer-progress');
+    const totalSec = engine.durationSec || 1;
+    const elapsedSec = totalSec - engine.remainingSec;
+    const progressRatio = Math.min(1, Math.max(0, elapsedSec / totalSec));
+
+    if (linearProgress) {
+      linearProgress.style.width = `${Math.round(progressRatio * 100)}%`;
+      linearProgress.style.background = proto.accentColor;
+      linearProgress.style.boxShadow = `0 0 10px ${proto.accentColor}80`;
+    }
+
     // Ring progress (r=84, circumference = 2 * PI * 84 = 527.78)
     if (progressRing) {
       const maxOffset = 527.78;
-      const totalSec = engine.durationSec || 1;
-      const elapsedSec = totalSec - engine.remainingSec;
-      const progressRatio = Math.min(1, Math.max(0, elapsedSec / totalSec));
       progressRing.style.strokeDashoffset = String(maxOffset * (1 - progressRatio));
       progressRing.style.stroke = proto.accentColor;
     }
@@ -1944,7 +1953,7 @@ class AppState {
         card?.classList.remove('hidden', 'error', 'up-to-date');
         if (badge) badge.textContent = 'Update Available';
         if (versionTag) versionTag.textContent = `v${update.version}`;
-        if (notes) notes.textContent = update.body || `Version ${update.version} is now available.`;
+        if (notes) notes.textContent = this.cleanReleaseNotes(update.body);
         if (downloadBtn) {
           downloadBtn.classList.remove('hidden');
           downloadBtn.disabled = false;
@@ -1977,6 +1986,28 @@ class AppState {
       refreshIcon?.classList.remove('hidden');
       if (labelCheck) labelCheck.textContent = 'Check for Updates';
     }
+  }
+
+  cleanReleaseNotes(body) {
+    if (!body || !body.trim()) {
+      return 'Performance improvements, bug fixes, and feature updates.';
+    }
+    const lines = body
+      .split('\n')
+      .map(l => l.replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^[-*•]\s*/, '').replace(/`/g, '').trim())
+      .filter(l => {
+        if (!l) return false;
+        const lower = l.toLowerCase();
+        if (lower.startsWith('clinical foundations') || lower.startsWith('platform packages') || lower.startsWith('always-on cross-platform') || lower.startsWith('spine & eye clinical ergonomics')) {
+          return false;
+        }
+        return true;
+      });
+
+    if (lines.length === 0) {
+      return body.replace(/[#*`]/g, '').trim().slice(0, 120);
+    }
+    return lines.slice(0, 2).join(' — ');
   }
 
   async downloadAndInstallUpdate() {

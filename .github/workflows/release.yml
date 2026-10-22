@@ -112,6 +112,19 @@ jobs:
             echo "TAURI_SIGNING_PRIVATE_KEY=$CLEAN_KEY" >> $GITHUB_ENV
           fi
 
+      - name: Extract Commit Summary for Release Notes
+        shell: bash
+        run: |
+          COMMIT_SUBJ=$(git log -1 --pretty=format:"%s")
+          COMMIT_BODY=$(git log -1 --pretty=format:"%b" | head -n 1)
+          if [ -n "$COMMIT_BODY" ]; then
+            RELEASE_DESC="${COMMIT_SUBJ} — ${COMMIT_BODY}"
+          else
+            RELEASE_DESC="${COMMIT_SUBJ}"
+          fi
+          RELEASE_DESC=$(echo "$RELEASE_DESC" | tr '\n' ' ' | sed 's/  */ /g')
+          echo "RELEASE_DESCRIPTION=$RELEASE_DESC" >> $GITHUB_ENV
+
       - name: Build Tauri Desktop Application (Unsigned / Ad-hoc Signed)
         uses: tauri-apps/tauri-action@v0
         env:
@@ -122,17 +135,7 @@ jobs:
         with:
           tagName: "${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}"
           releaseName: "Spine & Eye Release ${{ github.ref_type == 'tag' && github.ref_name || format('v0.1.{0}', github.run_number) }}"
-          releaseBody: |
-            ## Spine & Eye Clinical Ergonomics Desktop Companion
-            Always-on cross-platform background reminder app built with Tauri v2.
-
-            ### Clinical Foundations:
-            - **Cornell University Ergonomics (CUErgo)**: 20-8-2 work pattern & neutral spine guidelines.
-            - **American Academy of Ophthalmology (AAO)**: 20-20-20 rule & digital eye strain blink protocol.
-
-            ### Platform Packages:
-            - **macOS**: Ad-hoc signed (`APPLE_SIGNING_IDENTITY: "-"`) `.dmg` and `.app.tar.gz`.
-            - **Windows 11**: Standalone NSIS setup (`.exe`) and MSI installer (`.msi`).
+          releaseBody: "${{ env.RELEASE_DESCRIPTION }}"
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}

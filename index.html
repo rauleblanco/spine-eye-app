@@ -227,85 +227,35 @@
       <section id="view-protocol" class="timer-deck">
         <!-- Active Protocol Details & Circular Timer Card -->
         <div class="timer-card glass-panel">
-          <!-- Protocol Metadata Header -->
+          <!-- Protocol Metadata Header with Inline Larger Font One-Line Timer & Progress Bar -->
           <div class="protocol-detail-header">
             <div class="proto-header-left">
               <span id="detail-category-badge" class="badge-category">Eye Rest</span>
-              <h2 id="detail-protocol-name" class="detail-name">20-20-20 Rule</h2>
+              
+              <div class="proto-title-timer-row">
+                <h2 id="detail-protocol-name" class="detail-name">20-20-20 Rule</h2>
+                
+                <!-- Larger Font One-Line Timer with Progress Bar to the Right of Posture Name -->
+                <div class="proto-inline-timer-group">
+                  <div class="inline-timer-digits-row">
+                    <span id="timer-stage-badge" class="stage-pill">Screen Focus</span>
+                    <span id="timer-display" class="timer-digits-linear">20:00</span>
+                  </div>
+                  <div class="inline-progress-track">
+                    <div id="linear-timer-progress" class="inline-progress-bar"></div>
+                  </div>
+                </div>
+              </div>
+
               <span id="detail-institution" class="detail-source">American Academy of Ophthalmology (AAO)</span>
             </div>
+
             <div class="proto-header-right">
               <button id="btn-pair-simultaneous" class="btn-pair-simultaneous hidden" title="Choose this posture to run simultaneously with Eye Rest">
                 <span id="pair-btn-icon">⚡</span>
                 <span id="pair-btn-label">Pair with Vision</span>
               </button>
               <span id="detail-cadence-pill" class="cadence-pill">Every 20 minutes for 20 seconds</span>
-            </div>
-          </div>
-
-          <!-- Hero Section: Circular Progress Ring (Left) + Posture Guidance Info (Right) -->
-          <div class="timer-hero-section">
-            <!-- Left: Circular Progress Ring & Stage Display -->
-            <div class="timer-visual-container">
-              <svg class="progress-ring" viewBox="0 0 200 200">
-                <defs>
-                  <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#06b6d4" />
-                    <stop offset="100%" stop-color="#3b82f6" />
-                  </linearGradient>
-                </defs>
-                <circle class="ring-bg" cx="100" cy="100" r="84" />
-                <circle id="ring-progress" class="ring-fg" cx="100" cy="100" r="84" />
-              </svg>
-
-              <!-- Center Content: Only stage pill & large clean timer digits -->
-              <div class="timer-center-info">
-                <div id="timer-stage-badge" class="stage-pill">Screen Focus</div>
-                <div id="timer-display" class="timer-digits">20:00</div>
-              </div>
-            </div>
-
-            <!-- Right: Posture & Dynamic Phase Guidance Pane (Integrated from old right pane) -->
-            <div class="timer-posture-side-pane">
-              <div class="card-header-row">
-                <span class="card-tag" id="guidance-tag">Cornell Neutral Posture</span>
-                <span class="card-institute" id="guidance-institution">Cornell CUErgo</span>
-              </div>
-
-              <div class="guidance-visual-pane" id="guidance-visual">
-                <div class="posture-skeleton-graphic">
-                  <div class="spine-indicator good" id="spine-indicator">
-                    <span class="spine-dot head"></span>
-                    <span class="spine-line neck"></span>
-                    <span class="spine-dot shoulders"></span>
-                    <span class="spine-line torso"></span>
-                    <span class="spine-dot lumbar"></span>
-                  </div>
-                </div>
-                <div class="guidance-bullets">
-                  <div class="guidance-step">
-                    <span class="step-num">01</span>
-                    <div>
-                      <h4 id="guide-step-1-title">Eye Level Alignment</h4>
-                      <p id="guide-step-1-desc">Top third of monitor at or slightly below resting eye level.</p>
-                    </div>
-                  </div>
-                  <div class="guidance-step">
-                    <span class="step-num">02</span>
-                    <div>
-                      <h4 id="guide-step-2-title">Forearms & Wrists</h4>
-                      <p id="guide-step-2-desc">Elbows open at 90°-100° with straight neutral wrists.</p>
-                    </div>
-                  </div>
-                  <div class="guidance-step">
-                    <span class="step-num">03</span>
-                    <div>
-                      <h4 id="guide-step-3-title">Frequent Blinking</h4>
-                      <p id="guide-step-3-desc">Consciously blink every 4-5 seconds to preserve lipid layer.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
