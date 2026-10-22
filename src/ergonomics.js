@@ -159,6 +159,53 @@ export const CLINICAL_PROTOCOLS = {
         nextStep: 'Return to neutral seated focus'
       }
     ]
+  },
+
+  posture_custom: {
+    id: 'posture_custom',
+    category: 'Custom Posture',
+    name: 'Personalized Posture Cycle',
+    institution: 'User Configurable Protocol',
+    type: 'posture',
+    accentColor: '#ec4899',
+    accentGlow: 'rgba(236, 72, 153, 0.28)',
+    intervalDescription: 'Custom 3-step cycle: Stand • Sit • Stretch',
+    notificationAction: 'Alternate through your personalized Stand, Sit, and Stretch intervals to optimize ergonomics and focus.',
+    clinicalRationale: 'Customizable intervals allow individuals with unique standing desk habits, orthopedic constraints, or workflow requirements to alternate postures at their ideal cadence.',
+    researchUrl: 'https://ergo.human.cornell.edu/',
+    researchCitation: 'Cornell University Ergonomics Web - Customizable Postural Load Modulation',
+    steps: [
+      {
+        id: 'stand',
+        name: 'Stand',
+        shortName: 'Stand',
+        durationSec: 10 * 60, // 10 min
+        icon: '🧍',
+        timestampLabel: 'Step 1: Stand',
+        guidance: 'Stand: Weight evenly distributed on both feet, soft knees, forearms at 90°–100°.',
+        nextStep: 'Lower desk / Transition to seated posture'
+      },
+      {
+        id: 'sit',
+        name: 'Sit (Neutral Posture)',
+        shortName: 'Sit',
+        durationSec: 20 * 60, // 20 min
+        icon: '🪑',
+        timestampLabel: 'Step 2: Sit',
+        guidance: 'Sit: Lumbar supported, elbows 90°, top of screen at eye level, feet flat on floor.',
+        nextStep: 'Step away and stretch'
+      },
+      {
+        id: 'stretch',
+        name: 'Step away, stretch, hydrate',
+        shortName: 'Stretch',
+        durationSec: 2 * 60, // 2 min
+        icon: '🧘',
+        timestampLabel: 'Step 3: Stretch',
+        guidance: 'Step away, stretch, hydrate: Perform cervical retractions and shoulder rolls.',
+        nextStep: 'Return to upright standing position'
+      }
+    ]
   }
 };
 

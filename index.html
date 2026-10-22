@@ -89,12 +89,24 @@
       </div>
     </header>
 
-    <!-- Master 1-Click Dual Protocol Action Bar -->
+    <!-- Master Dual Protocol Action Bar -->
     <section class="master-action-bar glass-panel">
       <div class="master-info-col">
         <div class="master-title-row">
           <span class="master-indicator-pill">Simultaneous Protocol Engines</span>
           <span class="master-subtext">Independent background timing running concurrently</span>
+          <div class="simultaneous-posture-picker-pill">
+            <label class="picker-label" for="select-simultaneous-posture">Paired Posture:</label>
+            <div class="picker-select-wrapper">
+              <select id="select-simultaneous-posture" class="simultaneous-select" aria-label="Choose posture protocol for simultaneous execution">
+                <option value="posture_default">Posture (Default 20-8-2)</option>
+                <option value="posture_deep_work">Posture (Deep Work 45-15)</option>
+                <option value="musculoskeletal_reset">Musculoskeletal Reset (30m/60s)</option>
+                <option value="posture_custom">Custom Posture</option>
+              </select>
+              <svg class="select-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
         </div>
         <div class="master-status-trackers">
           <div class="tracker-item" id="tracker-eye">
@@ -106,7 +118,7 @@
           <div class="tracker-divider"></div>
           <div class="tracker-item" id="tracker-posture">
             <span class="tracker-dot dot-posture"></span>
-            <span class="tracker-title">Posture Cycle:</span>
+            <span class="tracker-title">Posture (<span id="tracker-posture-name">Default</span>):</span>
             <strong id="tracker-posture-digits">20:00</strong>
             <span id="tracker-posture-step" class="tracker-step-lbl">• Step 1: Sit (Neutral)</span>
           </div>
@@ -122,7 +134,7 @@
             <rect x="6" y="4" width="4" height="16"></rect>
             <rect x="14" y="4" width="4" height="16"></rect>
           </svg>
-          <span id="master-btn-label">Start Vision + Posture (1-Click)</span>
+          <span id="master-btn-label">Start Vision + Posture</span>
         </button>
 
         <button id="btn-master-reset" class="btn-master-reset" title="Reset both vision and posture protocols" aria-label="Reset all protocols">
@@ -153,6 +165,7 @@
             <span class="tab-bold-title">Posture (Default)</span>
             <span id="tab-badge-posture-default" class="tab-mini-badge">20-8-2</span>
           </div>
+          <span id="paired-pill-posture_default" class="tab-paired-pill" title="Selected for simultaneous protocol">PAIRED</span>
         </button>
 
         <button id="tab-posture-deep" class="protocol-tab" data-protocol="posture_deep_work" role="tab" aria-selected="false">
@@ -161,6 +174,7 @@
             <span class="tab-bold-title">Posture (Deep Work)</span>
             <span id="tab-badge-posture-deep" class="tab-mini-badge">45-15</span>
           </div>
+          <span id="paired-pill-posture_deep_work" class="tab-paired-pill hidden" title="Selected for simultaneous protocol">PAIRED</span>
         </button>
 
         <button id="tab-micro" class="protocol-tab" data-protocol="musculoskeletal_reset" role="tab" aria-selected="false">
@@ -169,6 +183,16 @@
             <span class="tab-bold-title">Musculoskeletal Reset</span>
             <span id="tab-badge-micro" class="tab-mini-badge">30m/60s</span>
           </div>
+          <span id="paired-pill-musculoskeletal_reset" class="tab-paired-pill hidden" title="Selected for simultaneous protocol">PAIRED</span>
+        </button>
+
+        <button id="tab-posture-custom" class="protocol-tab" data-protocol="posture_custom" role="tab" aria-selected="false">
+          <div class="tab-indicator custom-glow"></div>
+          <div class="tab-title-wrap">
+            <span class="tab-bold-title">Custom Posture</span>
+            <span id="tab-badge-posture-custom" class="tab-mini-badge">Custom</span>
+          </div>
+          <span id="paired-pill-posture_custom" class="tab-paired-pill hidden" title="Selected for simultaneous protocol">PAIRED</span>
         </button>
 
         <button id="tab-stretches" class="protocol-tab" data-view="stretches" role="tab" aria-selected="false">
@@ -192,6 +216,10 @@
               <span id="detail-institution" class="detail-source">American Academy of Ophthalmology (AAO)</span>
             </div>
             <div class="proto-header-right">
+              <button id="btn-pair-simultaneous" class="btn-pair-simultaneous hidden" title="Choose this posture to run simultaneously with Eye Rest">
+                <span id="pair-btn-icon">⚡</span>
+                <span id="pair-btn-label">Pair with Vision</span>
+              </button>
               <span id="detail-cadence-pill" class="cadence-pill">Every 20 minutes for 20 seconds</span>
             </div>
           </div>
@@ -213,6 +241,81 @@
             <div class="timer-center-info">
               <div id="timer-stage-badge" class="stage-pill">Screen Focus</div>
               <div id="timer-display" class="timer-digits">20:00</div>
+            </div>
+          </div>
+
+          <!-- Custom Posture Configuration Card (Visible when Custom Posture tab is active) -->
+          <div id="custom-posture-config-card" class="custom-posture-card glass-panel hidden">
+            <div class="custom-config-header">
+              <div class="custom-config-title">
+                <span class="custom-config-icon">⚙️</span>
+                <h3>Custom Posture Routine (Up to 3 Steps)</h3>
+              </div>
+              <span class="custom-config-hint">Select steps and configure interval durations</span>
+            </div>
+
+            <div class="custom-steps-config-grid">
+              <!-- Step: Stand -->
+              <div class="custom-step-item" id="config-step-stand">
+                <div class="step-toggle-row">
+                  <label class="custom-checkbox-wrap">
+                    <input type="checkbox" id="check-step-stand" checked>
+                    <span class="custom-check-box"></span>
+                    <span class="step-label-with-icon">🧍 <strong>Step: Stand</strong></span>
+                  </label>
+                </div>
+                <div class="step-input-row">
+                  <label for="custom-dur-stand">Interval (minutes):</label>
+                  <div class="stepper-input-wrap">
+                    <input type="number" id="custom-dur-stand" min="1" max="180" value="10" class="custom-num-input">
+                    <span class="unit-tag">min</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step: Sit -->
+              <div class="custom-step-item" id="config-step-sit">
+                <div class="step-toggle-row">
+                  <label class="custom-checkbox-wrap">
+                    <input type="checkbox" id="check-step-sit" checked>
+                    <span class="custom-check-box"></span>
+                    <span class="step-label-with-icon">🪑 <strong>Step: Sit</strong></span>
+                  </label>
+                </div>
+                <div class="step-input-row">
+                  <label for="custom-dur-sit">Interval (minutes):</label>
+                  <div class="stepper-input-wrap">
+                    <input type="number" id="custom-dur-sit" min="1" max="180" value="20" class="custom-num-input">
+                    <span class="unit-tag">min</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step: Stretch -->
+              <div class="custom-step-item" id="config-step-stretch">
+                <div class="step-toggle-row">
+                  <label class="custom-checkbox-wrap">
+                    <input type="checkbox" id="check-step-stretch" checked>
+                    <span class="custom-check-box"></span>
+                    <span class="step-label-with-icon">🧘 <strong>Step: Stretch</strong></span>
+                  </label>
+                </div>
+                <div class="step-input-row">
+                  <label for="custom-dur-stretch">Interval (minutes):</label>
+                  <div class="stepper-input-wrap">
+                    <input type="number" id="custom-dur-stretch" min="1" max="60" value="2" class="custom-num-input">
+                    <span class="unit-tag">min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="custom-config-actions">
+              <button id="btn-save-custom-posture" class="btn-save-custom" type="button">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Save & Apply Custom Intervals</span>
+              </button>
+              <span id="custom-save-status" class="custom-save-status"></span>
             </div>
           </div>
 

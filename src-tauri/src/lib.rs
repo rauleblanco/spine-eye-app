@@ -337,7 +337,7 @@ fn setup_system_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let item_start_both = MenuItem::with_id(
         app,
         "start_both",
-        "Start Vision and Posture (1-Click)",
+        "Start Vision and Posture",
         true,
         None::<&str>,
     )?;

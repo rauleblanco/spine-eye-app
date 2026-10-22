@@ -83,8 +83,15 @@ async function openExternalUrl(url) {
 
 class AppState {
   constructor() {
-    this.activeView = 'eye_rest'; // 'eye_rest', 'posture_default', 'posture_deep_work', 'musculoskeletal_reset', 'stretches'
-    this.activePostureKey = 'posture_default'; // Selected posture protocol for 1-click dual sync
+    this.activeView = 'eye_rest'; // 'eye_rest', 'posture_default', 'posture_deep_work', 'musculoskeletal_reset', 'posture_custom', 'stretches'
+    this.activePostureKey = 'posture_default'; // Selected posture protocol for simultaneous dual sync
+
+    // Custom Posture Configuration (Stand, Sit, Stretch with configurable intervals)
+    this.customPostureConfig = {
+      stand: { enabled: true, minutes: 10 },
+      sit: { enabled: true, minutes: 20 },
+      stretch: { enabled: true, minutes: 2 }
+    };
 
     // Protocol Engine Instances (Independent Simultaneous State)
     this.engines = {};
@@ -100,6 +107,8 @@ class AppState {
         targetEndTime: null
       };
     }
+
+    this.applyCustomPostureConfig(this.customPostureConfig, false);
 
     // Modal break state
     this.breakTimerInterval = null;
@@ -135,7 +144,7 @@ class AppState {
 
   get currentEngine() {
     if (this.activeView === 'stretches') {
-      return this.engines[this.activePostureKey];
+      return this.engines[this.activePostureKey] || this.engines.posture_default;
     }
     return this.engines[this.activeView] || this.engines.eye_rest;
   }
@@ -145,22 +154,197 @@ class AppState {
   }
 
   get postureEngine() {
-    // 1. If currently selected activePostureKey engine is running, use it
-    if (this.engines[this.activePostureKey]?.isRunning) {
-      return this.engines[this.activePostureKey];
-    }
-    // 2. Otherwise, check if ANY posture/microbreak engine is currently running
-    const postureKeys = ['posture_default', 'posture_deep_work', 'musculoskeletal_reset'];
+    // 1. If ANY posture/microbreak engine is currently running, prioritize the running engine!
+    const postureKeys = ['posture_default', 'posture_deep_work', 'musculoskeletal_reset', 'posture_custom'];
     for (const key of postureKeys) {
       if (this.engines[key]?.isRunning) {
+        if (this.activePostureKey !== key) {
+          this.activePostureKey = key;
+        }
         return this.engines[key];
       }
     }
-    // 3. Fallback to activePostureKey if valid posture/microbreak, or posture_default
-    if (this.activePostureKey && this.activePostureKey !== 'eye_rest' && this.engines[this.activePostureKey]) {
+    // 2. Otherwise, return currently selected activePostureKey engine
+    if (this.activePostureKey && this.engines[this.activePostureKey]) {
       return this.engines[this.activePostureKey];
     }
     return this.engines.posture_default;
+  }
+
+  applyCustomPostureConfig(config, updateRuntime = true) {
+    if (!config) return;
+    this.customPostureConfig = config;
+
+    const steps = [];
+    if (config.stand?.enabled) {
+      const standSec = Math.max(1, Number(config.stand.minutes) || 10) * 60;
+      steps.push({
+        id: 'stand',
+        name: 'Stand',
+        shortName: 'Stand',
+        durationSec: standSec,
+        icon: '🧍',
+        timestampLabel: 'Stand',
+        guidance: 'Stand: Weight evenly distributed on both feet, soft knees, forearms at 90°–100°.',
+        nextStep: 'Transition to next phase'
+      });
+    }
+
+    if (config.sit?.enabled) {
+      const sitSec = Math.max(1, Number(config.sit.minutes) || 20) * 60;
+      steps.push({
+        id: 'sit',
+        name: 'Sit (Neutral Posture)',
+        shortName: 'Sit',
+        durationSec: sitSec,
+        icon: '🪑',
+        timestampLabel: 'Sit',
+        guidance: 'Sit: Lumbar supported, elbows 90°, top of screen at eye level, feet flat on floor.',
+        nextStep: 'Transition to next phase'
+      });
+    }
+
+    if (config.stretch?.enabled) {
+      const stretchSec = Math.max(1, Number(config.stretch.minutes) || 2) * 60;
+      steps.push({
+        id: 'stretch',
+        name: 'Step away, stretch, hydrate',
+        shortName: 'Stretch',
+        durationSec: stretchSec,
+        icon: '🧘',
+        timestampLabel: 'Stretch',
+        guidance: 'Step away, stretch, hydrate: Perform cervical retractions and shoulder rolls.',
+        nextStep: 'Transition to next phase'
+      });
+    }
+
+    // Fallback: at least 1 step required
+    if (steps.length === 0) {
+      steps.push({
+        id: 'stand',
+        name: 'Stand',
+        shortName: 'Stand',
+        durationSec: 10 * 60,
+        icon: '🧍',
+        timestampLabel: 'Stand',
+        guidance: 'Stand upright with soft knees.',
+        nextStep: 'Resume routine'
+      });
+    }
+
+    // Compute dynamic next step labels
+    for (let i = 0; i < steps.length; i++) {
+      const next = steps[(i + 1) % steps.length];
+      const nextMin = Math.round(next.durationSec / 60);
+      steps[i].nextStep = `Next: ${next.name} (${nextMin >= 1 ? `${nextMin} min` : `${next.durationSec} sec`})`;
+    }
+
+    const totalMins = Math.round(steps.reduce((acc, s) => acc + s.durationSec, 0) / 60);
+    CLINICAL_PROTOCOLS.posture_custom.steps = steps;
+    CLINICAL_PROTOCOLS.posture_custom.intervalDescription = `${totalMins}-min custom cycle: • ${steps.map(s => `${Math.round(s.durationSec / 60)} min ${s.shortName}`).join(' • ')}`;
+
+    if (this.engines.posture_custom) {
+      this.engines.posture_custom.proto = CLINICAL_PROTOCOLS.posture_custom;
+      if (this.engines.posture_custom.stepIndex >= steps.length) {
+        this.engines.posture_custom.stepIndex = 0;
+      }
+      const currentStep = steps[this.engines.posture_custom.stepIndex];
+      if (updateRuntime) {
+        this.engines.posture_custom.durationSec = currentStep.durationSec;
+        if (this.engines.posture_custom.isRunning) {
+          this.engines.posture_custom.remainingSec = currentStep.durationSec;
+          this.engines.posture_custom.targetEndTime = Date.now() + currentStep.durationSec * 1000;
+        } else {
+          this.engines.posture_custom.remainingSec = currentStep.durationSec;
+        }
+      }
+    }
+
+    this.savePersistedState();
+
+    if (this.activeView === 'posture_custom') {
+      this.updateProtocolView();
+    }
+    this.updateMasterBarDisplay();
+    this.updateTabsDisplay();
+  }
+
+  setSimultaneousPosture(newKey) {
+    if (!this.engines[newKey] || newKey === 'eye_rest') return;
+    if (this.activePostureKey === newKey) return;
+
+    const prevKey = this.activePostureKey;
+    const prevEngine = this.engines[prevKey];
+    const wasRunning = prevEngine?.isRunning;
+
+    if (wasRunning) {
+      this.pauseEngine(prevEngine);
+    }
+
+    this.activePostureKey = newKey;
+
+    if (wasRunning) {
+      const newEngine = this.engines[newKey];
+      this.startEngine(newEngine);
+    }
+
+    this.savePersistedState();
+    this.updatePairedStatusUI();
+    this.updateMasterBarDisplay();
+    this.updateTabsDisplay();
+
+    if (this.activeView !== 'stretches') {
+      this.updateProtocolTimerCardDisplay();
+    }
+    this.syncTrayStatus();
+  }
+
+  updatePairedStatusUI() {
+    const selectEl = document.getElementById('select-simultaneous-posture');
+    if (selectEl && selectEl.value !== this.activePostureKey) {
+      selectEl.value = this.activePostureKey;
+    }
+
+    const nameEl = document.getElementById('tracker-posture-name');
+    if (nameEl) {
+      const names = {
+        posture_default: 'Default',
+        posture_deep_work: 'Deep Work',
+        musculoskeletal_reset: 'Reset',
+        posture_custom: 'Custom'
+      };
+      nameEl.textContent = names[this.activePostureKey] || 'Posture';
+    }
+
+    // Update paired pills on tabs
+    const postureKeys = ['posture_default', 'posture_deep_work', 'musculoskeletal_reset', 'posture_custom'];
+    for (const key of postureKeys) {
+      const pill = document.getElementById(`paired-pill-${key}`);
+      if (pill) {
+        pill.classList.toggle('hidden', key !== this.activePostureKey);
+      }
+    }
+
+    // Update header pair button in protocol details
+    const pairBtn = document.getElementById('btn-pair-simultaneous');
+    const pairLabel = document.getElementById('pair-btn-label');
+    const pairIcon = document.getElementById('pair-btn-icon');
+    if (pairBtn) {
+      const isPostureTab = this.activeView && (this.engines[this.activeView]?.proto?.type === 'posture' || this.activeView === 'musculoskeletal_reset');
+      if (isPostureTab) {
+        pairBtn.classList.remove('hidden');
+        const isCurrentPaired = this.activeView === this.activePostureKey;
+        pairBtn.classList.toggle('is-paired', isCurrentPaired);
+        if (pairLabel) {
+          pairLabel.textContent = isCurrentPaired ? '✓ Paired with Vision' : 'Pair with Vision';
+        }
+        if (pairIcon) {
+          pairIcon.textContent = isCurrentPaired ? '★' : '⚡';
+        }
+      } else {
+        pairBtn.classList.add('hidden');
+      }
+    }
   }
 
   init() {
@@ -172,6 +356,7 @@ class AppState {
     this.updateProtocolView();
     this.updateMasterBarDisplay();
     this.updateTabsDisplay();
+    this.updatePairedStatusUI();
     this.syncTrayStatus();
     this.startMasterTicker();
     initTauriBindings();
@@ -218,9 +403,55 @@ class AppState {
         this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
         sound.setMuted(!this.settings.audioChimes);
       }
+      const savedCustom = localStorage.getItem('spineeye_custom_posture');
+      if (savedCustom) {
+        this.applyCustomPostureConfig(JSON.parse(savedCustom), false);
+      }
       const savedPosture = localStorage.getItem('spineeye_posture_key') || localStorage.getItem('deskhealth_posture_key');
       if (savedPosture && this.engines[savedPosture] && savedPosture !== 'eye_rest') {
         this.activePostureKey = savedPosture;
+      }
+      const savedView = localStorage.getItem('spineeye_active_view');
+      if (savedView && (this.engines[savedView] || savedView === 'stretches')) {
+        this.activeView = savedView;
+      }
+
+      // Restore engine runtime states smoothly
+      const savedEngineStates = localStorage.getItem('spineeye_engine_states');
+      if (savedEngineStates) {
+        const parsed = JSON.parse(savedEngineStates);
+        const now = Date.now();
+        for (const [k, state] of Object.entries(parsed)) {
+          if (this.engines[k] && state) {
+            this.engines[k].stepIndex = state.stepIndex || 0;
+            this.engines[k].durationSec = state.durationSec || this.engines[k].proto.steps[this.engines[k].stepIndex]?.durationSec || 60;
+            if (state.isRunning && state.targetEndTime) {
+              const remainingMs = state.targetEndTime - now;
+              if (remainingMs > 0) {
+                this.engines[k].isRunning = true;
+                this.engines[k].targetEndTime = state.targetEndTime;
+                this.engines[k].remainingSec = Math.ceil(remainingMs / 1000);
+              } else {
+                // Step expired while inactive: advance step cleanly
+                this.engines[k].isRunning = true;
+                this.onEngineStepComplete(this.engines[k]);
+              }
+            } else {
+              this.engines[k].isRunning = false;
+              this.engines[k].targetEndTime = null;
+              this.engines[k].remainingSec = (typeof state.remainingSec === 'number') ? state.remainingSec : this.engines[k].durationSec;
+            }
+          }
+        }
+      }
+
+      // Ensure activePostureKey aligns with any running posture engine
+      const postureKeys = ['posture_default', 'posture_deep_work', 'musculoskeletal_reset', 'posture_custom'];
+      for (const k of postureKeys) {
+        if (this.engines[k]?.isRunning) {
+          this.activePostureKey = k;
+          break;
+        }
       }
     } catch {
       // Fallback safely to defaults
@@ -234,6 +465,23 @@ class AppState {
       if (this.activePostureKey && this.activePostureKey !== 'eye_rest') {
         localStorage.setItem('spineeye_posture_key', this.activePostureKey);
       }
+      localStorage.setItem('spineeye_active_view', this.activeView);
+      if (this.customPostureConfig) {
+        localStorage.setItem('spineeye_custom_posture', JSON.stringify(this.customPostureConfig));
+      }
+
+      // Persist engine runtime state (targetEndTime, isRunning, stepIndex, durationSec, remainingSec)
+      const engineStates = {};
+      for (const [k, eng] of Object.entries(this.engines)) {
+        engineStates[k] = {
+          isRunning: eng.isRunning,
+          targetEndTime: eng.targetEndTime,
+          remainingSec: eng.remainingSec,
+          stepIndex: eng.stepIndex,
+          durationSec: eng.durationSec
+        };
+      }
+      localStorage.setItem('spineeye_engine_states', JSON.stringify(engineStates));
     } catch {
       // Ignore storage errors safely
     }
@@ -383,6 +631,17 @@ class AppState {
         alertTitle = 'Microbreak Complete';
         alertBody = '60-second reset complete. Resume seated work in neutral alignment.';
       }
+    } else if (engine.id === 'posture_custom') {
+      if (completedStep.shortName === 'Stand') {
+        alertTitle = 'Custom Posture: Stand Interval Complete';
+        alertBody = `${nextStep.name}: ${nextStep.guidance}`;
+      } else if (completedStep.shortName === 'Sit') {
+        alertTitle = 'Custom Posture: Sit Interval Complete';
+        alertBody = `${nextStep.name}: ${nextStep.guidance}`;
+      } else if (completedStep.shortName === 'Stretch') {
+        alertTitle = 'Custom Posture: Stretch Interval Complete';
+        alertBody = `${nextStep.name}: ${nextStep.guidance}`;
+      }
     }
 
     if (alertTitle) {
@@ -430,12 +689,10 @@ class AppState {
     } else {
       if (!this.engines[key]) return;
       this.activeView = key;
-      // Only switch activePostureKey if clicked tab is a posture protocol,
-      // AND either the clicked engine is currently running OR no other posture engine is running.
-      // This prevents simply browsing other tabs from disassociating a running posture cycle!
+      // If no posture protocol is currently running, automatically align activePostureKey with viewed posture tab
       if (this.engines[key].proto.type === 'posture' || key === 'musculoskeletal_reset') {
         const currentRunningPosture = this.postureEngine;
-        if (!currentRunningPosture?.isRunning || currentRunningPosture.id === key) {
+        if (!currentRunningPosture?.isRunning) {
           this.activePostureKey = key;
           this.savePersistedState();
         }
@@ -450,7 +707,7 @@ class AppState {
     this.syncTrayStatus();
   }
 
-  // 1-Click "Start Vision + Posture"
+  // Dual Protocol "Start Vision + Posture"
   startBothProtocols() {
     const eye = this.eyeEngine;
     const posture = this.postureEngine;
@@ -599,8 +856,37 @@ class AppState {
     if (guideTag) guideTag.textContent = proto.name;
     if (guideInst) guideInst.textContent = proto.institution;
 
+    // Show/hide and populate custom posture configuration card
+    const customConfigCard = document.getElementById('custom-posture-config-card');
+    if (customConfigCard) {
+      if (this.activeView === 'posture_custom') {
+        customConfigCard.classList.remove('hidden');
+        const cfg = this.customPostureConfig || {
+          stand: { enabled: true, minutes: 10 },
+          sit: { enabled: true, minutes: 20 },
+          stretch: { enabled: true, minutes: 2 }
+        };
+        const chkStand = document.getElementById('check-step-stand');
+        const durStand = document.getElementById('custom-dur-stand');
+        const chkSit = document.getElementById('check-step-sit');
+        const durSit = document.getElementById('custom-dur-sit');
+        const chkStretch = document.getElementById('check-step-stretch');
+        const durStretch = document.getElementById('custom-dur-stretch');
+
+        if (chkStand) chkStand.checked = Boolean(cfg.stand?.enabled);
+        if (durStand) durStand.value = cfg.stand?.minutes || 10;
+        if (chkSit) chkSit.checked = Boolean(cfg.sit?.enabled);
+        if (durSit) durSit.value = cfg.sit?.minutes || 20;
+        if (chkStretch) chkStretch.checked = Boolean(cfg.stretch?.enabled);
+        if (durStretch) durStretch.value = cfg.stretch?.minutes || 2;
+      } else {
+        customConfigCard.classList.add('hidden');
+      }
+    }
+
     this.renderPostureStepper(proto, engine.stepIndex);
     this.updateProtocolTimerCardDisplay();
+    this.updatePairedStatusUI();
   }
 
   renderPostureStepper(proto, activeIndex) {
@@ -751,7 +1037,7 @@ class AppState {
       } else if (anyRunning) {
         masterBtnLabel.textContent = 'Resume Both Protocols';
       } else {
-        masterBtnLabel.textContent = 'Start Vision + Posture (1-Click)';
+        masterBtnLabel.textContent = 'Start Vision + Posture';
       }
     }
     if (masterPlay && masterPause) {
@@ -763,6 +1049,7 @@ class AppState {
         masterPause.classList.add('hidden');
       }
     }
+    this.updatePairedStatusUI();
   }
 
   updateTabsDisplay() {
@@ -798,11 +1085,13 @@ class AppState {
     const badgePostDef = document.getElementById('tab-badge-posture-default');
     const badgePostDeep = document.getElementById('tab-badge-posture-deep');
     const badgeMicro = document.getElementById('tab-badge-micro');
+    const badgePostCustom = document.getElementById('tab-badge-posture-custom');
 
     if (badgeEye) badgeEye.textContent = this.eyeEngine.isRunning ? formatMini(this.eyeEngine) : '20-20-20';
     if (badgePostDef) badgePostDef.textContent = this.engines.posture_default.isRunning ? formatMini(this.engines.posture_default) : '20-8-2';
     if (badgePostDeep) badgePostDeep.textContent = this.engines.posture_deep_work.isRunning ? formatMini(this.engines.posture_deep_work) : '45-15';
     if (badgeMicro) badgeMicro.textContent = this.engines.musculoskeletal_reset.isRunning ? formatMini(this.engines.musculoskeletal_reset) : '30m/60s';
+    if (badgePostCustom) badgePostCustom.textContent = this.engines.posture_custom.isRunning ? formatMini(this.engines.posture_custom) : 'Custom';
   }
 
   syncTrayStatus() {
@@ -1296,9 +1585,58 @@ class AppState {
       });
     });
 
-    // Master 1-Click Toggle Button
+    // Master Toggle Button (Simultaneous Vision + Posture)
     document.getElementById('btn-master-toggle')?.addEventListener('click', () => {
       this.startBothProtocols();
+    });
+
+    // Simultaneous posture selector dropdown in master action bar
+    document.getElementById('select-simultaneous-posture')?.addEventListener('change', (e) => {
+      this.setSimultaneousPosture(e.target.value);
+    });
+
+    // Quick Pair with Vision button in protocol header
+    document.getElementById('btn-pair-simultaneous')?.addEventListener('click', () => {
+      if (this.activeView && this.engines[this.activeView] && (this.engines[this.activeView].proto.type === 'posture' || this.activeView === 'musculoskeletal_reset')) {
+        this.setSimultaneousPosture(this.activeView);
+      }
+    });
+
+    // Save & apply Custom Posture configuration
+    document.getElementById('btn-save-custom-posture')?.addEventListener('click', () => {
+      const chkStand = document.getElementById('check-step-stand')?.checked ?? true;
+      const durStand = Math.max(1, Math.min(180, parseInt(document.getElementById('custom-dur-stand')?.value || '10', 10)));
+      const chkSit = document.getElementById('check-step-sit')?.checked ?? true;
+      const durSit = Math.max(1, Math.min(180, parseInt(document.getElementById('custom-dur-sit')?.value || '20', 10)));
+      const chkStretch = document.getElementById('check-step-stretch')?.checked ?? true;
+      const durStretch = Math.max(1, Math.min(60, parseInt(document.getElementById('custom-dur-stretch')?.value || '2', 10)));
+
+      const statusEl = document.getElementById('custom-save-status');
+
+      if (!chkStand && !chkSit && !chkStretch) {
+        if (statusEl) {
+          statusEl.textContent = 'Please enable at least 1 step.';
+          statusEl.style.color = '#f43f5e';
+        }
+        return;
+      }
+
+      const newConfig = {
+        stand: { enabled: chkStand, minutes: durStand },
+        sit: { enabled: chkSit, minutes: durSit },
+        stretch: { enabled: chkStretch, minutes: durStretch }
+      };
+
+      this.applyCustomPostureConfig(newConfig, true);
+
+      if (statusEl) {
+        statusEl.textContent = '✓ Saved and applied to custom cycle!';
+        statusEl.style.color = '#34d399';
+        setTimeout(() => {
+          if (statusEl) statusEl.textContent = '';
+        }, 3000);
+      }
+      sound.playCompletionChime();
     });
 
     // Master Reset All Button (Reset both vision and posture protocols)
@@ -1700,4 +2038,27 @@ class AppState {
 export const appState = new AppState();
 document.addEventListener('DOMContentLoaded', () => {
   appState.init();
+});
+
+// Resynchronize on window focus or visibility change to ensure GUI status never drifts
+window.addEventListener('focus', () => {
+  appState.tickTimers();
+  appState.updateMasterBarDisplay();
+  appState.updateTabsDisplay();
+  if (appState.activeView !== 'stretches') {
+    appState.updateProtocolTimerCardDisplay();
+  }
+  appState.syncTrayStatus();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    appState.tickTimers();
+    appState.updateMasterBarDisplay();
+    appState.updateTabsDisplay();
+    if (appState.activeView !== 'stretches') {
+      appState.updateProtocolTimerCardDisplay();
+    }
+    appState.syncTrayStatus();
+  }
 });
