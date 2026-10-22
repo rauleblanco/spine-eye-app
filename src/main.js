@@ -2028,6 +2028,8 @@ class AppState {
 
   initUpdater() {
     this.activeUpdate = null;
+    const headerPill = document.getElementById('btn-header-update');
+    headerPill?.classList.add('hidden');
 
     document.getElementById('btn-check-updates')?.addEventListener('click', () => {
       this.checkForUpdates(true);
@@ -2117,6 +2119,8 @@ class AppState {
           downloadBtn.textContent = 'Download & Install';
         }
       } else {
+        this.activeUpdate = null;
+        headerPill?.classList.add('hidden');
         if (interactive) {
           card?.classList.remove('hidden', 'error');
           card?.classList.add('up-to-date');
@@ -2131,6 +2135,7 @@ class AppState {
       }
     } catch (err) {
       console.warn('Tauri update check error:', err);
+      headerPill?.classList.add('hidden');
       if (interactive) {
         card?.classList.remove('hidden', 'up-to-date');
         card?.classList.add('error');

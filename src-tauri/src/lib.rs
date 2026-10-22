@@ -576,8 +576,17 @@ pub fn run() {
     };
 
     log_debug("Starting event loop with ExitRequested interception");
-    app.run(|_app_handle, event| {
+    app.run(|app_handle, event| {
         match event {
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen { .. } => {
+                log_debug("macOS dock icon clicked (Reopen event)");
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let _ = window.unminimize();
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
             tauri::RunEvent::ExitRequested { api, .. } => {
                 if !ALLOW_EXIT.load(Ordering::SeqCst) {
                     log_debug("ExitRequested intercepted (window close) -> api.prevent_exit()");

@@ -3183,6 +3183,10 @@ body.light-theme .theme-segment-btn.active svg {
   color: #0284c7;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 860px) {
   .timer-deck {
