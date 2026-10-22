@@ -132,8 +132,10 @@ class AppState {
       autoBreak: true,
       sitTime: 20,
       standTime: 8,
-      aaoTime: 20
+      aaoTime: 20,
+      theme: 'auto'
     };
+    this.pendingTheme = 'auto';
 
     // Ergonomic Audit Answers
     this.auditAnswers = new Set([0, 1, 2, 3, 4, 5, 6]);
@@ -349,6 +351,8 @@ class AppState {
 
   init() {
     this.loadPersistedState();
+    this.applyTheme(this.settings.theme);
+    this.setupSystemThemeListener();
     this.setupUI();
     this.renderAboutVersion();
     this.renderStretches();
@@ -360,6 +364,133 @@ class AppState {
     this.syncTrayStatus();
     this.startMasterTicker();
     initTauriBindings();
+  }
+
+  applyTheme(theme) {
+    if (!['auto', 'light', 'dark'].includes(theme)) {
+      theme = 'auto';
+    }
+    this.settings.theme = theme;
+    this.pendingTheme = theme;
+
+    let effectiveTheme = theme;
+    if (theme === 'auto') {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      effectiveTheme = prefersDark ? 'dark' : 'light';
+    }
+
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
+    document.documentElement.setAttribute('data-theme-setting', theme);
+
+    if (effectiveTheme === 'light') {
+      document.documentElement.classList.add('light-theme');
+      document.documentElement.classList.remove('dark-theme');
+      if (document.body) {
+        document.body.classList.add('light-theme');
+        document.body.classList.remove('dark-theme');
+      }
+    } else {
+      document.documentElement.classList.add('dark-theme');
+      document.documentElement.classList.remove('light-theme');
+      if (document.body) {
+        document.body.classList.add('dark-theme');
+        document.body.classList.remove('light-theme');
+      }
+    }
+
+    // Update settings modal segmented buttons
+    document.querySelectorAll('.theme-segment-btn').forEach(btn => {
+      const isSelected = btn.dataset.themeVal === theme;
+      btn.classList.toggle('active', isSelected);
+      btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+    });
+
+    // Update quick toggle button in header
+    this.updateThemeHeaderButton();
+  }
+
+  updateThemeHeaderButton() {
+    const btn = document.getElementById('btn-theme-toggle');
+    if (!btn) return;
+
+    const themeSetting = this.settings.theme || 'auto';
+    const effectiveTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+    const iconLight = document.getElementById('theme-icon-light');
+    const iconDark = document.getElementById('theme-icon-dark');
+    const iconAuto = document.getElementById('theme-icon-auto');
+
+    if (iconLight) iconLight.classList.add('hidden');
+    if (iconDark) iconDark.classList.add('hidden');
+    if (iconAuto) iconAuto.classList.add('hidden');
+
+    if (themeSetting === 'auto') {
+      if (iconAuto) iconAuto.classList.remove('hidden');
+      btn.title = `Theme: Auto (System ${effectiveTheme === 'dark' ? 'Dark' : 'Light'}) — Click to toggle`;
+      btn.setAttribute('aria-label', `Theme: Auto, currently ${effectiveTheme}`);
+    } else if (themeSetting === 'light') {
+      if (iconLight) iconLight.classList.remove('hidden');
+      btn.title = 'Theme: Light Mode — Click to toggle';
+      btn.setAttribute('aria-label', 'Theme: Light Mode');
+    } else {
+      if (iconDark) iconDark.classList.remove('hidden');
+      btn.title = 'Theme: Dark Mode — Click to toggle';
+      btn.setAttribute('aria-label', 'Theme: Dark Mode');
+    }
+  }
+
+  cycleTheme() {
+    const sequence = ['auto', 'light', 'dark'];
+    const currentIdx = sequence.indexOf(this.settings.theme || 'auto');
+    const nextTheme = sequence[(currentIdx + 1) % sequence.length];
+    this.applyTheme(nextTheme);
+    this.savePersistedState();
+  }
+
+  setupSystemThemeListener() {
+    if (!window.matchMedia) return;
+    try {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const listener = () => {
+        if (this.settings.theme === 'auto') {
+          this.applyTheme('auto');
+        }
+      };
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', listener);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(listener);
+      }
+    } catch (e) {
+      console.warn('System theme listener error:', e);
+    }
+  }
+
+  populateSettingsModal() {
+    const chkNative = document.getElementById('chk-native-notif');
+    if (chkNative) chkNative.checked = this.settings.nativeNotif;
+
+    const chkAudio = document.getElementById('chk-audio-chimes');
+    if (chkAudio) chkAudio.checked = this.settings.audioChimes;
+
+    const chkAutoBreak = document.getElementById('chk-auto-break');
+    if (chkAutoBreak) chkAutoBreak.checked = this.settings.autoBreak;
+
+    const inpSit = document.getElementById('inp-sit-time');
+    if (inpSit) inpSit.value = this.settings.sitTime;
+
+    const inpStand = document.getElementById('inp-stand-time');
+    if (inpStand) inpStand.value = this.settings.standTime;
+
+    const inpAao = document.getElementById('inp-aao-time');
+    if (inpAao) inpAao.value = this.settings.aaoTime;
+
+    this.pendingTheme = this.settings.theme || 'auto';
+    document.querySelectorAll('.theme-segment-btn').forEach(btn => {
+      const isSelected = btn.dataset.themeVal === this.pendingTheme;
+      btn.classList.toggle('active', isSelected);
+      btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+    });
   }
 
   async renderAboutVersion() {
@@ -403,6 +534,10 @@ class AppState {
         this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
         sound.setMuted(!this.settings.audioChimes);
       }
+      if (!this.settings.theme) {
+        this.settings.theme = 'auto';
+      }
+      this.pendingTheme = this.settings.theme;
       const savedCustom = localStorage.getItem('spineeye_custom_posture');
       if (savedCustom) {
         this.applyCustomPostureConfig(JSON.parse(savedCustom), false);
@@ -1781,12 +1916,32 @@ class AppState {
       this.savePersistedState();
     });
 
+    // Theme Quick Toggle Button in Header
+    document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+      this.cycleTheme();
+    });
+
+    // Theme Segmented Control in Settings Modal
+    document.querySelectorAll('.theme-segment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedTheme = btn.dataset.themeVal;
+        if (selectedTheme) {
+          this.pendingTheme = selectedTheme;
+          this.applyTheme(selectedTheme);
+        }
+      });
+    });
+
     // Settings Modal
     const settingsModal = document.getElementById('settings-modal');
     document.getElementById('btn-settings-toggle')?.addEventListener('click', () => {
+      this.populateSettingsModal();
       settingsModal?.classList.remove('hidden');
     });
     document.getElementById('btn-close-settings')?.addEventListener('click', () => {
+      if (this.pendingTheme && this.pendingTheme !== this.settings.theme) {
+        this.applyTheme(this.settings.theme);
+      }
       settingsModal?.classList.add('hidden');
     });
 
@@ -1806,9 +1961,11 @@ class AppState {
       const sitTime = parseInt(document.getElementById('inp-sit-time')?.value || '20', 10);
       const standTime = parseInt(document.getElementById('inp-stand-time')?.value || '8', 10);
       const aaoTime = parseInt(document.getElementById('inp-aao-time')?.value || '20', 10);
+      const theme = this.pendingTheme || this.settings.theme || 'auto';
 
-      this.settings = { nativeNotif, audioChimes, autoBreak, sitTime, standTime, aaoTime };
+      this.settings = { nativeNotif, audioChimes, autoBreak, sitTime, standTime, aaoTime, theme };
       sound.setMuted(!audioChimes);
+      this.applyTheme(theme);
 
       // Apply updated durations to protocols
       this.engines.eye_rest.proto.steps[0].durationSec = aaoTime * 60;
