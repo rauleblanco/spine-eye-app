@@ -95,54 +95,73 @@
         <div class="master-title-row">
           <span class="master-indicator-pill">Simultaneous Protocol Engines</span>
           <span class="master-subtext">Independent background timing running concurrently</span>
-          <div class="simultaneous-posture-picker-pill">
-            <label class="picker-label" for="select-simultaneous-posture">Paired Posture:</label>
-            <div class="picker-select-wrapper">
-              <select id="select-simultaneous-posture" class="simultaneous-select" aria-label="Choose posture protocol for simultaneous execution">
-                <option value="posture_default">Posture (Default 20-8-2)</option>
-                <option value="posture_deep_work">Posture (Deep Work 45-15)</option>
-                <option value="musculoskeletal_reset">Musculoskeletal Reset (30m/60s)</option>
-                <option value="posture_custom">Custom Posture</option>
-              </select>
-              <svg class="select-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div class="master-simultaneous-row">
+          <!-- Eye Rest Protocol Item (Styled similarly to paired posture dropdown) -->
+          <div class="simultaneous-protocol-pill pill-eye" id="tracker-eye">
+            <div class="simultaneous-pill-header">
+              <span class="tracker-dot dot-eye"></span>
+              <span class="simultaneous-pill-label">Eye Rest:</span>
+              <span class="simultaneous-pill-badge">20-20-20 (AAO)</span>
+            </div>
+            <div class="simultaneous-pill-timer">
+              <strong id="tracker-eye-digits">20:00</strong>
+              <span id="tracker-eye-step" class="tracker-step-lbl">• Screen Focus</span>
             </div>
           </div>
-        </div>
-        <div class="master-status-trackers">
-          <div class="tracker-item" id="tracker-eye">
-            <span class="tracker-dot dot-eye"></span>
-            <span class="tracker-title">Eye Rest:</span>
-            <strong id="tracker-eye-digits">20:00</strong>
-            <span id="tracker-eye-step" class="tracker-step-lbl">• Screen Focus</span>
-          </div>
-          <div class="tracker-divider"></div>
-          <div class="tracker-item" id="tracker-posture">
-            <span class="tracker-dot dot-posture"></span>
-            <span class="tracker-title">Posture (<span id="tracker-posture-name">Default</span>):</span>
-            <strong id="tracker-posture-digits">20:00</strong>
-            <span id="tracker-posture-step" class="tracker-step-lbl">• Step 1: Sit (Neutral)</span>
+
+          <!-- Paired Posture Protocol Item (With interactive dropdown) -->
+          <div class="simultaneous-protocol-pill pill-posture" id="tracker-posture">
+            <div class="simultaneous-pill-header">
+              <span class="tracker-dot dot-posture"></span>
+              <label class="simultaneous-pill-label" for="select-simultaneous-posture">Paired Posture:</label>
+              <div class="picker-select-wrapper">
+                <select id="select-simultaneous-posture" class="simultaneous-select" aria-label="Choose posture protocol for simultaneous execution">
+                  <option value="posture_default">Default (20-8-2)</option>
+                  <option value="posture_deep_work">Deep Work (45-15)</option>
+                  <option value="musculoskeletal_reset">Reset (30m/60s)</option>
+                  <option value="posture_custom">Custom Posture</option>
+                </select>
+                <svg class="select-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+            <div class="simultaneous-pill-timer">
+              <strong id="tracker-posture-digits">20:00</strong>
+              <span id="tracker-posture-step" class="tracker-step-lbl">• Step 1: Sit (<span id="tracker-posture-name">Default</span>)</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="master-btn-col">
         <button id="btn-master-toggle" class="btn-master-primary" title="Start both vision and posture protocols simultaneously">
-          <svg id="master-icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <svg id="master-icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16"></rect>
-            <rect x="14" y="4" width="4" height="16"></rect>
-          </svg>
-          <span id="master-btn-label">Start Vision + Posture</span>
+          <div class="master-btn-icon-wrap">
+            <svg id="master-icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg id="master-icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </div>
+          <span id="master-btn-label" class="master-btn-text-lines">
+            <span id="master-btn-action" class="btn-line-main">Start</span>
+            <span id="master-btn-sub" class="btn-line-sub">Vision + Posture</span>
+          </span>
         </button>
 
         <button id="btn-master-reset" class="btn-master-reset" title="Reset both vision and posture protocols" aria-label="Reset all protocols">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-            <path d="M3 3v5h5"></path>
-          </svg>
-          <span>Reset All</span>
+          <div class="master-btn-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+          </div>
+          <span class="master-btn-text-lines">
+            <span class="btn-line-main">Reset</span>
+            <span class="btn-line-sub">All Protocols</span>
+          </span>
         </button>
       </div>
     </section>
@@ -224,23 +243,69 @@
             </div>
           </div>
 
-          <!-- Circular Progress Ring & Stage Display -->
-          <div class="timer-visual-container">
-            <svg class="progress-ring" viewBox="0 0 200 200">
-              <defs>
-                <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#06b6d4" />
-                  <stop offset="100%" stop-color="#3b82f6" />
-                </linearGradient>
-              </defs>
-              <circle class="ring-bg" cx="100" cy="100" r="84" />
-              <circle id="ring-progress" class="ring-fg" cx="100" cy="100" r="84" />
-            </svg>
+          <!-- Hero Section: Circular Progress Ring (Left) + Posture Guidance Info (Right) -->
+          <div class="timer-hero-section">
+            <!-- Left: Circular Progress Ring & Stage Display -->
+            <div class="timer-visual-container">
+              <svg class="progress-ring" viewBox="0 0 200 200">
+                <defs>
+                  <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#3b82f6" />
+                  </linearGradient>
+                </defs>
+                <circle class="ring-bg" cx="100" cy="100" r="84" />
+                <circle id="ring-progress" class="ring-fg" cx="100" cy="100" r="84" />
+              </svg>
 
-            <!-- Center Content: Only stage pill & large clean timer digits -->
-            <div class="timer-center-info">
-              <div id="timer-stage-badge" class="stage-pill">Screen Focus</div>
-              <div id="timer-display" class="timer-digits">20:00</div>
+              <!-- Center Content: Only stage pill & large clean timer digits -->
+              <div class="timer-center-info">
+                <div id="timer-stage-badge" class="stage-pill">Screen Focus</div>
+                <div id="timer-display" class="timer-digits">20:00</div>
+              </div>
+            </div>
+
+            <!-- Right: Posture & Dynamic Phase Guidance Pane (Integrated from old right pane) -->
+            <div class="timer-posture-side-pane">
+              <div class="card-header-row">
+                <span class="card-tag" id="guidance-tag">Cornell Neutral Posture</span>
+                <span class="card-institute" id="guidance-institution">Cornell CUErgo</span>
+              </div>
+
+              <div class="guidance-visual-pane" id="guidance-visual">
+                <div class="posture-skeleton-graphic">
+                  <div class="spine-indicator good" id="spine-indicator">
+                    <span class="spine-dot head"></span>
+                    <span class="spine-line neck"></span>
+                    <span class="spine-dot shoulders"></span>
+                    <span class="spine-line torso"></span>
+                    <span class="spine-dot lumbar"></span>
+                  </div>
+                </div>
+                <div class="guidance-bullets">
+                  <div class="guidance-step">
+                    <span class="step-num">01</span>
+                    <div>
+                      <h4 id="guide-step-1-title">Eye Level Alignment</h4>
+                      <p id="guide-step-1-desc">Top third of monitor at or slightly below resting eye level.</p>
+                    </div>
+                  </div>
+                  <div class="guidance-step">
+                    <span class="step-num">02</span>
+                    <div>
+                      <h4 id="guide-step-2-title">Forearms & Wrists</h4>
+                      <p id="guide-step-2-desc">Elbows open at 90°-100° with straight neutral wrists.</p>
+                    </div>
+                  </div>
+                  <div class="guidance-step">
+                    <span class="step-num">03</span>
+                    <div>
+                      <h4 id="guide-step-3-title">Frequent Blinking</h4>
+                      <p id="guide-step-3-desc">Consciously blink every 4-5 seconds to preserve lipid layer.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -369,64 +434,7 @@
             </button>
           </div>
 
-          <!-- Protocol Clinical Citation Bar with Research Link -->
-          <div class="protocol-citation-footer">
-            <div class="citation-left">
-              <span class="citation-icon">🩺</span>
-              <span id="citation-text" class="citation-copy">
-                <strong>AAO Guidance:</strong> Look at an object at least 20 feet away to relax the ciliary muscles and reset your blink rate.
-              </span>
-            </div>
-            <a id="protocol-research-link" class="research-link-btn" href="https://www.aao.org/eye-health/tips-prevention/computer-displays" target="_blank" rel="noopener" title="Open source clinical research">
-              <span>Source Research</span>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- Posture / Dynamic Phase Guidance Card -->
-        <div class="clinical-guidance-card glass-panel">
-          <div class="card-header-row">
-            <span class="card-tag" id="guidance-tag">Cornell Neutral Posture</span>
-            <span class="card-institute" id="guidance-institution">Cornell CUErgo</span>
-          </div>
-
-          <div class="guidance-visual-pane" id="guidance-visual">
-            <div class="posture-skeleton-graphic">
-              <div class="spine-indicator good" id="spine-indicator">
-                <span class="spine-dot head"></span>
-                <span class="spine-line neck"></span>
-                <span class="spine-dot shoulders"></span>
-                <span class="spine-line torso"></span>
-                <span class="spine-dot lumbar"></span>
-              </div>
-            </div>
-            <div class="guidance-bullets">
-              <div class="guidance-step">
-                <span class="step-num">01</span>
-                <div>
-                  <h4 id="guide-step-1-title">Eye Level Alignment</h4>
-                  <p id="guide-step-1-desc">Top third of monitor at or slightly below resting eye level.</p>
-                </div>
-              </div>
-              <div class="guidance-step">
-                <span class="step-num">02</span>
-                <div>
-                  <h4 id="guide-step-2-title">Forearms & Wrists</h4>
-                  <p id="guide-step-2-desc">Elbows open at 90°-100° with straight neutral wrists.</p>
-                </div>
-              </div>
-              <div class="guidance-step">
-                <span class="step-num">03</span>
-                <div>
-                  <h4 id="guide-step-3-title">Frequent Blinking</h4>
-                  <p id="guide-step-3-desc">Consciously blink every 4-5 seconds to preserve lipid layer.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Daily Ergonomics Progress Trackers -->
+          <!-- Daily Ergonomics Progress Trackers (Moved to bottom of singular pane) -->
           <div class="daily-metrics-grid">
             <div class="metric-box">
               <span class="metric-num" id="metric-breaks-count">0</span>
@@ -444,6 +452,20 @@
               <span class="metric-num" id="metric-compliance">100%</span>
               <span class="metric-lbl">Compliance</span>
             </div>
+          </div>
+
+          <!-- Protocol Clinical Citation Bar with Research Link -->
+          <div class="protocol-citation-footer">
+            <div class="citation-left">
+              <span class="citation-icon">🩺</span>
+              <span id="citation-text" class="citation-copy">
+                <strong>AAO Guidance:</strong> Look at an object at least 20 feet away to relax the ciliary muscles and reset your blink rate.
+              </span>
+            </div>
+            <a id="protocol-research-link" class="research-link-btn" href="https://www.aao.org/eye-health/tips-prevention/computer-displays" target="_blank" rel="noopener" title="Open source clinical research">
+              <span>Source Research</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
           </div>
         </div>
       </section>

@@ -257,10 +257,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: 10px 18px;
   margin-bottom: 8px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(18, 24, 38, 0.9), rgba(12, 17, 28, 0.96));
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(18, 24, 38, 0.92), rgba(12, 17, 28, 0.98));
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -269,13 +270,14 @@ body {
 .master-info-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .master-title-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -289,39 +291,85 @@ body {
   padding: 2px 8px;
   border-radius: var(--radius-full);
   border: 1px solid rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
 }
 
 .master-subtext {
   font-size: 11.5px;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.simultaneous-posture-picker-pill {
+/* Simultaneous Protocols Row (Eye Rest & Paired Posture Side-by-Side) */
+.master-simultaneous-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.simultaneous-protocol-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(52, 211, 153, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
-  padding: 2px 10px 2px 8px;
-  margin-left: auto;
+  padding: 3px 12px 3px 10px;
   transition: all var(--transition-fast);
 }
 
-.simultaneous-posture-picker-pill:hover,
-.simultaneous-posture-picker-pill:focus-within {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(52, 211, 153, 0.6);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+.simultaneous-protocol-pill.pill-eye {
+  border-color: rgba(6, 182, 212, 0.3);
 }
 
-.picker-label {
-  font-size: 10.5px;
+.simultaneous-protocol-pill.pill-eye:hover {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: rgba(6, 182, 212, 0.55);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.18);
+}
+
+.simultaneous-protocol-pill.pill-posture {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.simultaneous-protocol-pill.pill-posture:hover,
+.simultaneous-protocol-pill.pill-posture:focus-within {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.18);
+}
+
+.simultaneous-pill-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.simultaneous-pill-label {
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #a7f3d0;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.pill-eye .simultaneous-pill-label {
+  color: #67e8f9;
+}
+
+.pill-posture .simultaneous-pill-label {
+  color: #a7f3d0;
+}
+
+.simultaneous-pill-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
 }
 
 .picker-select-wrapper {
@@ -357,23 +405,35 @@ body {
   color: #34d399;
 }
 
-.master-status-trackers {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.tracker-item {
-  display: flex;
+.simultaneous-pill-timer {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.simultaneous-pill-timer strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.pill-eye .simultaneous-pill-timer strong {
+  color: #67e8f9;
+}
+
+.pill-posture .simultaneous-pill-timer strong {
+  color: #6ee7b7;
 }
 
 .tracker-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .dot-eye {
@@ -386,31 +446,39 @@ body {
   box-shadow: 0 0 8px #10b981;
 }
 
-.tracker-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--panel-border);
-}
-
 .tracker-step-lbl {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Master Buttons Column (Both Equal Size, Centered Two-Line Text) */
+.master-btn-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-master-primary,
+.btn-master-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 165px;
+  height: 52px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all var(--transition-fast);
 }
 
 .btn-master-primary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
   background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
   color: #03141a;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 700;
   border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
@@ -420,31 +488,10 @@ body {
   box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
 }
 
-.master-btn-col {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .btn-master-reset {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.btn-master-reset svg {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .btn-master-reset:hover {
@@ -453,6 +500,39 @@ body {
   color: #fca5a5;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+}
+
+.master-btn-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.master-btn-text-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.btn-line-main {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.btn-line-sub {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.9;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-master-reset:hover svg {
@@ -675,8 +755,10 @@ body {
 
 .custom-steps-config-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 14px;
 }
 
@@ -689,11 +771,13 @@ body {
 .custom-step-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
+  box-sizing: border-box;
+  min-width: 0;
   transition: all var(--transition-fast);
 }
 
@@ -845,6 +929,16 @@ body {
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.3px;
+  line-height: 1.25;
+}
+
+.detail-subtitle {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-top: 3px;
+  letter-spacing: 0.2px;
 }
 
 .detail-source {
@@ -867,25 +961,51 @@ body {
   color: var(--text-main);
 }
 
-/* Central Hero Deck */
+/* Central Hero Deck (Singular Pane) */
 .timer-deck {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   margin-bottom: 0;
+  width: 100%;
 }
 
-/* Main Timer Card */
+/* Main Timer Card (Singular Pane) */
 .timer-card {
-  padding: 12px 18px 10px;
+  padding: 12px 20px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Hero Section: Timer Circle (Left) + Posture Guidance (Right) */
+.timer-hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: 100%;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.timer-posture-side-pane {
+  flex: 1;
+  min-width: 320px;
+  max-width: 600px;
+  background: rgba(10, 15, 24, 0.45);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  text-align: left;
 }
 
 .timer-visual-container {

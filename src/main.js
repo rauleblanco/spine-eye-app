@@ -830,7 +830,13 @@ class AppState {
     const citationEl = document.getElementById('citation-text');
 
     if (catBadge) catBadge.textContent = proto.category;
-    if (nameEl) nameEl.textContent = proto.name;
+    if (nameEl) {
+      if (proto.id === 'posture_deep_work') {
+        nameEl.innerHTML = 'Macro Ratio<span class="detail-subtitle">(3:1 to 1:1)</span>';
+      } else {
+        nameEl.textContent = proto.name;
+      }
+    }
     if (instEl) instEl.textContent = proto.institution;
     if (cadenceEl) cadenceEl.textContent = proto.intervalDescription;
 
@@ -1024,6 +1030,8 @@ class AppState {
     }
 
     // Master button
+    const masterAction = document.getElementById('master-btn-action');
+    const masterSub = document.getElementById('master-btn-sub');
     const masterBtnLabel = document.getElementById('master-btn-label');
     const masterPlay = document.getElementById('master-icon-play');
     const masterPause = document.getElementById('master-icon-pause');
@@ -1031,7 +1039,18 @@ class AppState {
     const bothRunning = eye.isRunning && posture.isRunning;
     const anyRunning = eye.isRunning || posture.isRunning || Object.values(this.engines).some(e => e.isRunning);
 
-    if (masterBtnLabel) {
+    if (masterAction && masterSub) {
+      if (bothRunning) {
+        masterAction.textContent = 'Pause';
+        masterSub.textContent = 'Both Protocols';
+      } else if (anyRunning) {
+        masterAction.textContent = 'Resume';
+        masterSub.textContent = 'Both Protocols';
+      } else {
+        masterAction.textContent = 'Start';
+        masterSub.textContent = 'Vision + Posture';
+      }
+    } else if (masterBtnLabel) {
       if (bothRunning) {
         masterBtnLabel.textContent = 'Pause Both Protocols';
       } else if (anyRunning) {
